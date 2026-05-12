@@ -1,20 +1,92 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('schedule.index');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/schedule', function () {
+    return view('stub', ['title' => 'Расписание заездов']);
+})->name('schedule.index');
+
+Route::get('/tracks', function () {
+    return view('stub', ['title' => 'Трассы']);
+})->name('tracks.index');
+
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
+
+    Route::post('register', [RegisteredUserController::class, 'store']);
+
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+        ->name('login');
+
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+});
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout');
 });
 
-require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'role:User'])->group(function () {
+    Route::get('/my-bookings', function () {
+        return view('stub', ['title' => 'Мои бронирования']);
+    })->name('bookings.index');
+
+    Route::get('/bookings/create', function () {
+        return view('stub', ['title' => 'Новое бронирование']);
+    })->name('bookings.create');
+
+    Route::post('/bookings', function () {
+        return redirect()->route('bookings.index');
+    })->name('bookings.store');
+
+    Route::get('/my-bookings/{booking}', function ($booking) {
+        return view('stub', ['title' => 'Детали бронирования #' . $booking]);
+    })->name('bookings.show');
+
+    Route::patch('/my-bookings/{booking}/cancel', function ($booking) {
+        return redirect()->route('bookings.index');
+    })->name('bookings.cancel');
+});
+
+
+Route::middleware(['auth', 'role:Administrator'])->group(function () {
+    Route::get('/admin/bookings', function () {
+        return view('stub', ['title' => 'Все бронирования (Администратор)']);
+    })->name('admin.bookings.index');
+
+    Route::get('/admin/users', function () {
+        return view('stub', ['title' => 'Управление пользователями']);
+    })->name('admin.users.index');
+
+    Route::get('/admin/slots', function () {
+        return view('stub', ['title' => 'Управление слотами']);
+    })->name('admin.slots.index');
+
+    Route::get('/admin/karts', function () {
+        return view('stub', ['title' => 'Управление картами']);
+    })->name('admin.karts.index');
+});
+
+
+Route::middleware(['auth', 'role:Administrator,ContentManager'])->group(function () {
+    Route::get('/content/news', function () {
+        return view('stub', ['title' => 'Управление новостями']);
+    })->name('content.news.index');
+
+    Route::get('/content/promotions', function () {
+        return view('stub', ['title' => 'Управление акциями']);
+    })->name('content.promotions.index');
+
+    Route::get('/content/tracks', function () {
+        return view('stub', ['title' => 'Редактирование трасс']);
+    })->name('content.tracks.index');
+});
