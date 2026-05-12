@@ -2,20 +2,20 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\TrackController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('schedule.index');
 });
 
-Route::get('/schedule', function () {
-    return view('stub', ['title' => 'Расписание заездов']);
-})->name('schedule.index');
+Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
+Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
+Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
 
-Route::get('/tracks', function () {
-    return view('stub', ['title' => 'Трассы']);
-})->name('tracks.index');
-
+Route::view('/admin/bookings', 'stub')->name('admin.bookings.index');
+Route::view('/content/news', 'stub')->name('content.news.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
