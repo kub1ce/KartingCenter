@@ -26,7 +26,13 @@
                     </div>
                 </header>
             @endisset
-
+            @if (session('error'))
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                    <div class="rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
+                        {{ session('error') }}
+                    </div>
+                </div>
+            @endif
             <!-- Page Content -->
             <main>
                 {{ $slot }}

@@ -17,5 +17,10 @@ export default {
         },
     },
 
+    safelist: [
+        'bg-indigo-600', 'hover:bg-indigo-700', 'text-white', 'cursor-pointer',
+        'bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'pointer-events-none',
+    ],
+
     plugins: [forms],
 };
