@@ -15,11 +15,6 @@
                     <x-nav-link :href="route('tracks.index')" :active="request()->routeIs('tracks.*')">
                         Трассы
                     </x-nav-link>
-                    @can('is-client')
-                        <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
-                            Мои брони
-                        </x-nav-link>
-                    @endcan
 
                     @auth
                         @can('is-client')
