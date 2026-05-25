@@ -2,30 +2,28 @@
 
 namespace App\Models;
 
-use App\Enums\KartStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Kart extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'kart_type_id',
         'number',
+        'type_id',
         'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => KartStatus::class,
+            'status' => \App\Enums\KartStatus::class,
         ];
     }
 
-    public function kartType(): BelongsTo
+    public function kartType()
     {
-        return $this->belongsTo(KartType::class);
+        return $this->belongsTo(KartType::class, 'type_id');
     }
 }

@@ -124,4 +124,12 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
     Route::resource('news', \App\Http\Controllers\NewsController::class);
     
     Route::resource('promotions', \App\Http\Controllers\PromotionController::class);
+    
+    Route::resource('karts', \App\Http\Controllers\KartController::class);
+
+    Route::get('bookings', [\App\Http\Controllers\BookingAdminController::class, 'index'])->name('bookings.index');
+    Route::patch('bookings/{booking}/confirm', [\App\Http\Controllers\BookingAdminController::class, 'confirm'])->name('bookings.confirm');
+    Route::patch('bookings/{booking}/cancel', [\App\Http\Controllers\BookingAdminController::class, 'cancel'])->name('bookings.cancel');
+
+    Route::get('users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
 });

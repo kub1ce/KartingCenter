@@ -2,64 +2,73 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\KartStatus;
 use App\Models\Kart;
+use App\Models\KartType;
 use Illuminate\Http\Request;
 
 class KartController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $karts = Kart::with('kartType')->paginate(15);
+
+        if ($request->wantsJson()) {
+            return response()->json($karts);
+        }
+
+        return view('admin.karts.index', compact('karts'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $kartTypes = KartType::all();
+        $statuses = KartStatus::cases();
+
+        return view('admin.karts.create', compact('kartTypes', 'statuses'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'number' => 'required|string|max:10|unique:karts',
+            'type_id' => 'required|exists:kart_types,id',
+            'status' => 'required|string',
+        ]);
+
+        $validated['status'] = KartStatus::from($validated['status'])->value;
+
+        Kart::create($validated);
+
+        return redirect()->route('admin.karts.index')->with('success', 'Карт успешно добавлен!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Kart $kart)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Kart $kart)
     {
-        //
+        $kartTypes = KartType::all();
+        $statuses = KartStatus::cases();
+
+        return view('admin.karts.edit', compact('kart', 'kartTypes', 'statuses'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Kart $kart)
     {
-        //
+        $validated = $request->validate([
+            'number' => 'required|string|max:10|unique:karts,number,' . $kart->id,
+            'type_id' => 'required|exists:kart_types,id',
+            'status' => 'required|string',
+        ]);
+
+        $validated['status'] = KartStatus::from($validated['status'])->value;
+
+        $kart->update($validated);
+
+        return redirect()->route('admin.karts.index')->with('success', 'Карт обновлен!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Kart $kart)
     {
-        //
+        $kart->delete();
+        return redirect()->route('admin.karts.index')->with('success', 'Карт удален!');
     }
 }
