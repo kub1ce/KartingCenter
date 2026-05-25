@@ -119,3 +119,9 @@ Route::middleware(['auth', 'role:Administrator'])->group(function () {
 Route::middleware(['auth', 'role:Administrator,ContentManager'])->group(function () {
     Route::view('/content/news', 'stub')->name('content.news.index');
 });
+
+Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('news', \App\Http\Controllers\NewsController::class);
+    
+    Route::resource('promotions', \App\Http\Controllers\PromotionController::class);
+});
