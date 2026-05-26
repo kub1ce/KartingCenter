@@ -23,7 +23,7 @@ class Track extends Model
     protected function casts(): array
     {
         return [
-            'difficulty' => Difficulty::class,
+            'difficulty' => \App\Enums\Difficulty::class,
             'price_per_slot' => 'decimal:2',
         ];
     }

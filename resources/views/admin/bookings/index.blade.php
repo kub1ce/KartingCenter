@@ -1,6 +1,12 @@
 <x-admin-layout>
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Управление бронированиями</h1>
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Управление бронированиями</h1>
+        <a href="{{ route('admin.bookings.create') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            + Создать бронь
+        </a>
+    </div>
 
     <!-- Фильтры -->
     <div class="bg-white p-4 rounded shadow-md mb-6">

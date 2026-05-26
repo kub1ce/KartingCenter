@@ -11,125 +11,50 @@ Route::get('/', function () {
     return redirect()->route('schedule.index');
 });
 
+// паблик
 Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
 Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
 
-Route::view('/admin/bookings', 'stub')->name('admin.bookings.index');
-Route::view('/content/news', 'stub')->name('content.news.index');
-
+// учетная запись
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
-
+    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
-
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
-        ->name('login');
-
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 
+// выход
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->name('logout');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-
+// лк клиента
 Route::middleware(['auth', 'role:User'])->group(function () {
-    Route::get('/my-bookings', function () {
-        return view('stub', ['title' => 'Мои бронирования']);
-    })->name('bookings.index');
-
-    Route::get('/bookings/create', function () {
-        return view('stub', ['title' => 'Новое бронирование']);
-    })->name('bookings.create');
-
-    Route::post('/bookings', function () {
-        return redirect()->route('bookings.index');
-    })->name('bookings.store');
-
-    Route::get('/my-bookings/{booking}', function ($booking) {
-        return view('stub', ['title' => 'Детали бронирования #' . $booking]);
-    })->name('bookings.show');
-
-    Route::patch('/my-bookings/{booking}/cancel', function ($booking) {
-        return redirect()->route('bookings.index');
-    })->name('bookings.cancel');
+    Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::patch('/my-bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 });
 
-
-Route::middleware(['auth', 'role:Administrator'])->group(function () {
-    Route::get('/admin/bookings', function () {
-        return view('stub', ['title' => 'Все бронирования (Администратор)']);
-    })->name('admin.bookings.index');
-
-    Route::get('/admin/users', function () {
-        return view('stub', ['title' => 'Управление пользователями']);
-    })->name('admin.users.index');
-
-    Route::get('/admin/slots', function () {
-        return view('stub', ['title' => 'Управление слотами']);
-    })->name('admin.slots.index');
-
-    Route::get('/admin/karts', function () {
-        return view('stub', ['title' => 'Управление картами']);
-    })->name('admin.karts.index');
-});
-
-
-Route::middleware(['auth', 'role:Administrator,ContentManager'])->group(function () {
-    Route::get('/content/news', function () {
-        return view('stub', ['title' => 'Управление новостями']);
-    })->name('content.news.index');
-
-    Route::get('/content/promotions', function () {
-        return view('stub', ['title' => 'Управление акциями']);
-    })->name('content.promotions.index');
-
-    Route::get('/content/tracks', function () {
-        return view('stub', ['title' => 'Редактирование трасс']);
-    })->name('content.tracks.index');
-});
-
-
-Route::middleware(['auth', 'role:User'])->group(function () {
-
-    Route::get('/my-bookings', [BookingController::class, 'index'])
-        ->name('bookings.index');
-
-    Route::get('/bookings/create', [BookingController::class, 'create'])
-        ->name('bookings.create');
-
-    Route::post('/bookings', [BookingController::class, 'store'])
-        ->name('bookings.store');
-
-    Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])
-        ->name('bookings.show');
-
-    Route::patch('/my-bookings/{booking}/cancel', [BookingController::class, 'cancel'])
-        ->name('bookings.cancel');
-});
-
-
-Route::middleware(['auth', 'role:Administrator'])->group(function () {
-    Route::view('/admin/bookings', 'stub')->name('admin.bookings.index');
-});
-
-Route::middleware(['auth', 'role:Administrator,ContentManager'])->group(function () {
-    Route::view('/content/news', 'stub')->name('content.news.index');
-});
-
+// Админка
 Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // админ + контент-менеджер
     Route::resource('news', \App\Http\Controllers\NewsController::class);
-    
     Route::resource('promotions', \App\Http\Controllers\PromotionController::class);
+    Route::resource('tracks', \App\Http\Controllers\AdminTrackController::class);
     
-    Route::resource('karts', \App\Http\Controllers\KartController::class);
-
-    Route::get('bookings', [\App\Http\Controllers\BookingAdminController::class, 'index'])->name('bookings.index');
-    Route::patch('bookings/{booking}/confirm', [\App\Http\Controllers\BookingAdminController::class, 'confirm'])->name('bookings.confirm');
-    Route::patch('bookings/{booking}/cancel', [\App\Http\Controllers\BookingAdminController::class, 'cancel'])->name('bookings.cancel');
-
-    Route::get('users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    // онли адмик
+    Route::middleware(['role:Administrator'])->group(function () {
+        Route::resource('karts', \App\Http\Controllers\KartController::class);
+        Route::resource('slots', \App\Http\Controllers\SlotController::class)->only(['index', 'edit', 'update']);
+        Route::get('bookings', [\App\Http\Controllers\BookingAdminController::class, 'index'])->name('bookings.index');
+        Route::patch('bookings/{booking}/confirm', [\App\Http\Controllers\BookingAdminController::class, 'confirm'])->name('bookings.confirm');
+        Route::patch('bookings/{booking}/cancel', [\App\Http\Controllers\BookingAdminController::class, 'cancel'])->name('bookings.cancel');
+        Route::get('bookings/create', [\App\Http\Controllers\BookingAdminController::class, 'create'])->name('bookings.create');
+        Route::post('bookings', [\App\Http\Controllers\BookingAdminController::class, 'store'])->name('bookings.store');
+        Route::get('users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    });
 });

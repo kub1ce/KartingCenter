@@ -8,17 +8,28 @@
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     <div class="flex h-screen overflow-hidden">
-        
         <aside class="w-64 bg-gray-800 text-white flex flex-col flex-shrink-0">
             <div class="h-16 flex items-center justify-center border-b border-gray-700">
                 <span class="text-xl font-bold">Админ-панель</span>
             </div>
             <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+                
+                <p class="px-4 text-xs text-gray-400 uppercase mt-2 mb-2">Контент</p>
+                
                 <a href="{{ route('admin.news.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.news.*') ? 'bg-gray-700' : '' }}">Новости</a>
                 <a href="{{ route('admin.promotions.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.promotions.*') ? 'bg-gray-700' : '' }}">Акции</a>
-                <a href="/admin/karts" class="block px-4 py-2 rounded hover:bg-gray-700">Карты</a>
-                <a href="/admin/bookings" class="block px-4 py-2 rounded hover:bg-gray-700">Бронирования</a>
-                <a href="/admin/users" class="block px-4 py-2 rounded hover:bg-gray-700">Пользователи</a>
+                <a href="{{ route('admin.tracks.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.tracks.*') ? 'bg-gray-700' : '' }}">Трассы</a>
+                
+                @can('is-admin')
+                <hr class="border-gray-700 mt-16">
+                <p class="px-4 text-xs text-gray-400 uppercase mt-6 mb-2">Управление</p>
+                
+                <a href="{{ route('admin.karts.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.karts.*') ? 'bg-gray-700' : '' }}">Карты</a>
+                <a href="{{ route('admin.slots.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.slots.*') ? 'bg-gray-700' : '' }}">Слоты</a>
+                <a href="{{ route('admin.bookings.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.bookings.*') ? 'bg-gray-700' : '' }}">Бронирования</a>
+                <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 rounded hover:bg-gray-700 {{ request()->routeIs('admin.users.*') ? 'bg-gray-700' : '' }}">Пользователи</a>
+                @endcan
+
             </nav>
             <div class="px-4 py-4 border-t border-gray-700">
                 <a href="/" class="block px-4 py-2 rounded hover:bg-gray-700">← На сайт</a>

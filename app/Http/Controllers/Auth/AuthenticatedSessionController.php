@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
 
         return match ($user->role_id) {
             Role::Administrator => redirect()->route('admin.bookings.index'),
-            Role::ContentManager => redirect()->route('content.news.index'),
+            Role::ContentManager => redirect()->route('admin.news.index'),
             default => redirect()->route('schedule.index'),
         };
     }

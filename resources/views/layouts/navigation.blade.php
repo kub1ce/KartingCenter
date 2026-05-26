@@ -22,27 +22,12 @@
                                 {{ __('Мои брони') }}
                             </x-nav-link>
                         @endcan
-                        @can('is-content-manager')
-                            <x-nav-link :href="route('content.news.index')"
-                                        :active="request()->routeIs('content.news.*')">
-                                {{ __('Новости') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('content.promotions.index')"
-                                        :active="request()->routeIs('content.promotions.*')">
-                                {{ __('Акции') }}
-                            </x-nav-link>
-                        @endcan
 
-                        @can('is-admin')
-                            <x-nav-link :href="route('admin.bookings.index')"
-                                        :active="request()->routeIs('admin.bookings.*')">
-                                {{ __('Все брони') }}
+                        @canany(['is-admin', 'is-content-manager'])
+                            <x-nav-link :href="route('admin.news.index')" :active="request()->routeIs('admin.*')">
+                                {{ __('Админ-панель') }}
                             </x-nav-link>
-                            <x-nav-link :href="route('admin.users.index')"
-                                        :active="request()->routeIs('admin.users.*')">
-                                {{ __('Пользователи') }}
-                            </x-nav-link>
-                        @endcan
+                        @endcanany
                     @endauth
                 </div>
             </div>
@@ -124,19 +109,9 @@
                     </x-responsive-nav-link>
                 @endcan
 
-                @can('is-content-manager')
-                    <x-responsive-nav-link
-                        :href="route('content.news.index')">{{ __('Новости') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link
-                        :href="route('content.promotions.index')">{{ __('Акции') }}</x-responsive-nav-link>
-                @endcan
-
-                @can('is-admin')
-                    <x-responsive-nav-link
-                        :href="route('admin.bookings.index')">{{ __('Все брони') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link
-                        :href="route('admin.users.index')">{{ __('Пользователи') }}</x-responsive-nav-link>
-                @endcan
+                @canany(['is-admin', 'is-content-manager'])
+                    <x-responsive-nav-link :href="route('admin.news.index')">{{ __('Админ-панель') }}</x-responsive-nav-link>
+                @endcanany
             @endauth
         </div>
 

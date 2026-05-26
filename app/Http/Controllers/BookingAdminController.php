@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use App\Models\TimeSlot;
+use App\Models\User;
 
 class BookingAdminController extends Controller
 {
@@ -47,5 +49,44 @@ class BookingAdminController extends Controller
     {
         $booking->update(['status' => BookingStatus::Cancelled]);
         return redirect()->route('admin.bookings.index')->with('success', 'Бронирование отклонено!');
+    }
+
+    public function create()
+    {
+        $users = User::where('role_id', \App\Enums\Role::User)->get();
+        
+        $freeSlots = TimeSlot::where('is_blocked', false)
+            ->whereDoesntHave('bookings', function ($query) {
+                $query->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]);
+            })
+            ->with('track')
+            ->get();
+
+        return view('admin.bookings.create', compact('users', 'freeSlots'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'time_slot_id' => 'required|exists:time_slots,id',
+            'participants_count' => 'required|integer|min:1',
+        ]);
+
+        $slot = TimeSlot::find($validated['time_slot_id']);
+        if ($slot->is_blocked) {
+            return back()->withErrors('Этот слот заблокирован!')->withInput();
+        }
+
+        Booking::create([
+            'user_id' => $validated['user_id'],
+            'time_slot_id' => $validated['time_slot_id'],
+            'participants_count' => $validated['participants_count'],
+            'status' => BookingStatus::Confirmed,
+            'created_by' => auth()->id(),
+            'total_price' => $slot->track->price_per_slot * $validated['participants_count'],
+        ]);
+
+        return redirect()->route('admin.bookings.index')->with('success', 'Бронирование успешно создано!');
     }
 }
