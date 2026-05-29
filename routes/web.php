@@ -16,6 +16,10 @@ Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
 Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.index');
 
+// новости
+Route::get('/news', [\App\Http\Controllers\NewsController::class, 'publicIndex'])->name('public.news.index');
+Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'publicShow'])->name('public.news.show');
+
 // учетная запись
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');

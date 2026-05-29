@@ -23,6 +23,13 @@ class ScheduleController extends Controller
             ->where('is_blocked', false)
             ->where('date', '>=', today())
             ->where('date', '<=', today()->addDays(14))
+            ->where(function ($q) {
+                $q->where('date', '>', today())
+                ->orWhere(function ($subQ) {
+                    $subQ->where('date', today())
+                        ->where('start_time', '>', now()->format('H:i:s'));
+                });
+            })
             ->orderBy('date')
             ->orderBy('start_time');
 
@@ -38,5 +45,5 @@ class ScheduleController extends Controller
         $tracks = Track::orderBy('name')->get();
 
         return view('schedule.index', compact('slots', 'tracks'));
-    }
+}
 }

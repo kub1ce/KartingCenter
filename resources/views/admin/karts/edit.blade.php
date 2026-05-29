@@ -3,6 +3,23 @@
     <h1 class="text-2xl font-bold text-gray-800 mb-6">Редактирование карта #{{ $kart->number }}</h1>
 
     <div class="bg-white p-6 rounded shadow-md max-w-2xl">
+        @if(session('warning'))
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+                <p class="font-bold">Внимание!</p>
+                <p>{{ session('warning') }}</p>
+                <form action="{{ route('admin.karts.update', $kart->id) }}" method="POST" class="mt-3">
+                    @csrf @method('PUT')
+                    <!-- Передаем все старые значения + скрытый флаг подтверждения -->
+                    <input type="hidden" name="number" value="{{ old('number', $kart->number) }}">
+                    <input type="hidden" name="kart_type_id" value="{{ old('kart_type_id', $kart->kart_type_id) }}">
+                    <input type="hidden" name="status" value="{{ \App\Enums\KartStatus::Maintenance->value }}">
+                    <input type="hidden" name="force_maintenance" value="1">
+                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-xs">
+                        Всё равно поставить на ТО
+                    </button>
+                </form>
+            </div>
+        @endif
         <form action="{{ route('admin.karts.update', $kart->id) }}" method="POST">
             @csrf
             @method('PUT')
@@ -17,17 +34,17 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="type_id">Тип карта</label>
-                <select name="type_id" id="type_id" 
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('type_id') border-red-500 @enderror">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="kart_type_id">Тип карта</label>
+                <select name="kart_type_id" id="kart_type_id" 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('kart_type_id') border-red-500 @enderror">
                     <option value="">Выберите тип</option>
                     @foreach ($kartTypes as $type)
-                        <option value="{{ $type->id }}" {{ old('type_id', $kart->type_id) == $type->id ? 'selected' : '' }}>
+                        <option value="{{ $type->id }}" {{ old('kart_type_id', $kart->kart_type_id) == $type->id ? 'selected' : '' }}>
                             {{ $type->name }} (Мест: {{ $type->seats }})
                         </option>
                     @endforeach
                 </select>
-                @error('type_id')
+                @error('kart_type_id')
                     <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                 @enderror
             </div>

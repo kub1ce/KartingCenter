@@ -92,4 +92,24 @@ class NewsController extends Controller
         return redirect()->route('admin.news.index')->with('success', 'Новость удалена!');
     }
 
+
+    public function publicIndex()
+    {
+        $news = News::where('is_published', true)
+            ->where('published_at', '<=', now())
+            ->orderBy('published_at', 'desc')
+            ->paginate(9);
+
+        return view('public.news.index', compact('news'));
+    }
+
+    public function publicShow(News $news)
+    {
+        if (!$news->is_published || $news->published_at > now()) {
+            abort(404);
+        }
+
+        return view('public.news.show', compact('news'));
+    }
+
 }

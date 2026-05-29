@@ -108,6 +108,21 @@ class BookingController extends Controller
                 ->filter(fn($k) => (int)($k['quantity'] ?? 0) > 0)
                 ->values()
                 ->toArray();
+            
+            $availabilityService = new \App\Services\KartAvailabilityService();
+            $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
+
+            foreach ($kartsData as $kart) {
+                $typeId = $kart['kart_type_id'];
+                $requestedQty = $kart['quantity'];
+                $freeQty = $availableKarts[$typeId] ?? 0;
+
+                if ($requestedQty > $freeQty) {
+                    $validator = \Illuminate\Support\Facades\Validator::make([], []);
+                    $validator->errors()->add('karts', "Недостаточно свободных картов выбранного типа на это время. Доступно: {$freeQty}");
+                    throw new \Illuminate\Validation\ValidationException($validator);
+                }
+            }
 
             $totalPrice = $this->priceCalculator->calculate($slot, $kartsData);
 

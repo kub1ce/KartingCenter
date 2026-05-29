@@ -15,6 +15,9 @@
                     <x-nav-link :href="route('tracks.index')" :active="request()->routeIs('tracks.*')">
                         Трассы
                     </x-nav-link>
+                    <x-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">
+                        Новости
+                    </x-nav-link>
 
                     @auth
                         @can('is-client')
@@ -100,6 +103,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('tracks.index')" :active="request()->routeIs('tracks.*')">
                 {{ __('Трассы') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">
+                {{ __('Новости') }}
             </x-responsive-nav-link>
 
             @auth

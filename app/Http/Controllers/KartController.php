@@ -32,7 +32,7 @@ class KartController extends Controller
     {
         $validated = $request->validate([
             'number' => 'required|string|max:10|unique:karts',
-            'type_id' => 'required|exists:kart_types,id',
+            'kart_type_id' => 'required|exists:kart_types,id',
             'status' => 'required|string',
         ]);
 
@@ -55,12 +55,22 @@ class KartController extends Controller
     {
         $validated = $request->validate([
             'number' => 'required|string|max:10|unique:karts,number,' . $kart->id,
-            'type_id' => 'required|exists:kart_types,id',
+            'kart_type_id' => 'required|exists:kart_types,id',
             'status' => 'required|string',
         ]);
 
-        $validated['status'] = KartStatus::from($validated['status'])->value;
+        $newStatus = \App\Enums\KartStatus::from($validated['status']);
 
+        if ($newStatus === \App\Enums\KartStatus::Maintenance && $kart->status !== \App\Enums\KartStatus::Maintenance) {
+            $service = new \App\Services\KartAvailabilityService();
+            $check = $service->checkKartMaintenanceFeasibility($kart->id);
+
+            if ($check['needs_warning'] && !$request->has('force_maintenance')) {
+                return back()->withInput()->with('warning', $check['message']);
+            }
+        }
+
+        $validated['status'] = $newStatus->value;
         $kart->update($validated);
 
         return redirect()->route('admin.karts.index')->with('success', 'Карт обновлен!');

@@ -34,6 +34,15 @@
                 </select>
             </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Фильтр</button>
+            @if(request()->filled('show_past'))
+                <a href="{{ route('admin.bookings.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    Скрыть архив
+                </a>
+            @else
+                <a href="{{ route('admin.bookings.index', ['show_past' => 1]) }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    Показать архив
+                </a>
+            @endif
             <a href="{{ route('admin.bookings.index') }}" class="text-gray-600 hover:text-gray-800">Сбросить</a>
         </form>
     </div>
@@ -60,21 +69,36 @@
                     <td class="py-3 px-6 text-left">#{{ $booking->id }}</td>
                     <td class="py-3 px-6 text-left">{{ $booking->user->name ?? 'Удален' }}</td>
                     <td class="py-3 px-6 text-left">
-                        {{ $booking->timeSlot->track->name ?? '—' }}<br>
-                        <span class="text-xs text-gray-500">{{ $booking->timeSlot->date }} {{ $booking->timeSlot->start_time }}</span>
+                        <div class="font-bold">{{ $booking->timeSlot->track->name ?? '—' }}</div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ $booking->timeSlot->date->format('d.m.Y') }} | {{ \Carbon\Carbon::parse($booking->timeSlot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->timeSlot->end_time)->format('H:i') }}
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            @foreach($booking->bookingKarts as $bk)
+                                <span class="bg-blue-100 text-blue-800 py-0.5 px-2 rounded text-xs font-semibold">
+                                    {{ $bk->kartType->name ?? 'Тип?' }} x{{ $bk->quantity }}
+                                </span>
+                            @endforeach
+                        </div>
                     </td>
                     <td class="py-3 px-6 text-center">{{ $booking->participants_count }}</td>
                     <td class="py-3 px-6 text-center">
-                        @php
-                            $colorClass = 'bg-gray-200 text-gray-600';
-                            if ($booking->status == \App\Enums\BookingStatus::Pending) $colorClass = 'bg-yellow-200 text-yellow-600';
-                            if ($booking->status == \App\Enums\BookingStatus::Confirmed) $colorClass = 'bg-green-200 text-green-600';
-                            if ($booking->status == \App\Enums\BookingStatus::Cancelled) $colorClass = 'bg-red-200 text-red-600';
-                            if ($booking->status == \App\Enums\BookingStatus::Completed) $colorClass = 'bg-blue-200 text-blue-600';
-                        @endphp
-                        <span class="{{ $colorClass }} py-1 px-3 rounded-full text-xs">
-                            {{ $booking->status->name }}
-                        </span>
+                        <div class="flex flex-col items-center gap-1">
+                            @php
+                                $colorClass = 'bg-gray-200 text-gray-600';
+                                if ($booking->status == \App\Enums\BookingStatus::Pending) $colorClass = 'bg-yellow-200 text-yellow-600';
+                                if ($booking->status == \App\Enums\BookingStatus::Confirmed) $colorClass = 'bg-green-200 text-green-600';
+                                if ($booking->status == \App\Enums\BookingStatus::Cancelled) $colorClass = 'bg-red-200 text-red-600';
+                                if ($booking->status == \App\Enums\BookingStatus::Completed) $colorClass = 'bg-blue-200 text-blue-600';
+                            @endphp
+                            <span class="{{ $colorClass }} py-1 px-3 rounded-full text-xs">
+                                {{ $booking->status->name }}
+                            </span>
+                            
+                            @if($booking->timeSlot->date < now()->toDateString() || $booking->status == \App\Enums\BookingStatus::Completed || $booking->status == \App\Enums\BookingStatus::Cancelled)
+                                <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-[10px] uppercase font-bold">Архив</span>
+                            @endif
+                        </div>
                     </td>
                     <td class="py-3 px-6 text-center">
                         <div class="flex item-center justify-center">

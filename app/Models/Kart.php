@@ -11,7 +11,7 @@ class Kart extends Model
 
     protected $fillable = [
         'number',
-        'type_id',
+        'kart_type_id',
         'status',
     ];
 
@@ -24,6 +24,6 @@ class Kart extends Model
 
     public function kartType()
     {
-        return $this->belongsTo(KartType::class, 'type_id');
+        return $this->belongsTo(KartType::class, 'kart_type_id');
     }
 }

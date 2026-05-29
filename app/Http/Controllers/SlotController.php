@@ -12,7 +12,10 @@ class SlotController extends Controller
     {
         $query = TimeSlot::with('track');
 
-        // фильтеры
+        if (!$request->filled('show_past') && !$request->filled('date')) {
+            $query->where('date', '>=', now()->toDateString());
+        }
+
         if ($request->filled('track_id')) {
             $query->where('track_id', $request->track_id);
         }
