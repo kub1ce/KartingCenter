@@ -1,4 +1,14 @@
 @php use Carbon\Carbon; @endphp
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -81,6 +91,7 @@
                 x-data="{
                     participants: {{ old('participants_count', 1) }},
                     quantities: {{ Js::from($kartTypes->mapWithKeys(fn($k) => [$k->id => 0])) }},
+                    limits: {{ Js::from($kartLimits) }},
                     kartTypes: {{ Js::from($kartTypes->map(fn($k) => [
                         'id' => $k->id,
                         'name' => $k->name,
@@ -182,6 +193,7 @@
 
                                     <div class="flex items-center gap-2">
                                         <button type="button"
+                                                x-bind:disabled="(quantities[{{ $kartType->id }}] ?? 0) <= 0"
                                                 @click="if((quantities[{{ $kartType->id }}] ?? 0) > 0) quantities[{{ $kartType->id }}]--"
                                                 class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-sm">
                                             −
@@ -189,7 +201,8 @@
                                         <span class="w-8 text-center font-semibold text-gray-800"
                                               x-text="quantities[{{ $kartType->id }}] ?? 0"></span>
                                         <button type="button"
-                                                @click="quantities[{{ $kartType->id }}] = (quantities[{{ $kartType->id }}] ?? 0) + 1"
+                                                x-bind:disabled="(quantities[{{ $kartType->id }}] ?? 0) >= limits[{{ $kartType->id }}]['max']"
+                                                @click="if((quantities[{{ $kartType->id }}] ?? 0) < limits[{{ $kartType->id }}]['max']) quantities[{{ $kartType->id }}]++"
                                                 class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-sm">
                                             +
                                         </button>
@@ -200,6 +213,12 @@
                                            x-text="((quantities[{{ $kartType->id }}] ?? 0) * {{ (float) $slot->track->price_per_slot * (float) $kartType->price_modifier }}).toLocaleString('ru-RU') + ' ₽'">
                                         </p>
                                     </div>
+                                </div>
+
+                                <div class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5 flex items-center gap-1.5 sm:col-span-3"
+                                        x-show="limits[{{ $kartType->id }}]['showWarning'] === true && (quantities[{{ $kartType->id }}] ?? 0) === limits[{{ $kartType->id }}]['max']">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                    <span>Остальные карты этого типа заняты в другом заезде. Выберите другое время, если нужно больше.</span>
                                 </div>
                             @endforeach
                         </div>

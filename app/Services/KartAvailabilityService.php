@@ -11,28 +11,44 @@ class KartAvailabilityService
     public function getAvailableKartsCountForSlot(TimeSlot $slot): array
     {
         $kartTypes = KartType::all();
-        $availability = [];
+        $limits = [];
+
+        $overlappingSlotIds = TimeSlot::where('date', $slot->date->format('Y-m-d'))
+            ->where('start_time', '<', $slot->end_time)
+            ->where('end_time', '>', $slot->start_time)
+            ->pluck('id');
+
+        $activeBookings = \App\Models\Booking::whereIn('time_slot_id', $overlappingSlotIds)
+            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->with('bookingKarts')
+            ->get();
 
         foreach ($kartTypes as $type) {
             $totalInFleet = $type->karts()->count();
-
+            
             $onMaintenance = $type->karts()->where('status', KartStatus::Maintenance)->count();
-
+            
             $physicallyAvailable = $totalInFleet - $onMaintenance;
 
-            $booked = $slot->bookings()
-                ->whereIn('status', ['Pending', 'Confirmed'])
-                ->with('bookingKarts')
-                ->get()
-                ->sum(function ($booking) use ($type) {
-                    $kartRecord = $booking->bookingKarts->firstWhere('kart_type_id', $type->id);
-                    return $kartRecord ? $kartRecord->quantity : 0;
-                });
+            $bookedSameTime = 0;
+            foreach ($activeBookings as $booking) {
+                $kartRecord = $booking->bookingKarts->firstWhere('kart_type_id', $type->id);
+                if ($kartRecord) {
+                    $bookedSameTime += $kartRecord->quantity;
+                }
+            }
 
-            $availability[$type->id] = max(0, $physicallyAvailable - $booked);
+            $maxAvailable = max(0, $physicallyAvailable - $bookedSameTime);
+
+            $showWarning = $bookedSameTime > 0;
+
+            $limits[$type->id] = [
+                'max' => $maxAvailable,
+                'showWarning' => $showWarning
+            ];
         }
 
-        return $availability;
+        return $limits;
     }
 
     public function checkKartMaintenanceFeasibility(int $kartId): array

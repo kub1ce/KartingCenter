@@ -87,7 +87,10 @@ class BookingController extends Controller
 
         $kartTypes = KartType::all();
 
-        return view('bookings.create', compact('slot', 'kartTypes'));
+        $availabilityService = new \App\Services\KartAvailabilityService();
+        $kartLimits = $availabilityService->getAvailableKartsCountForSlot($slot);
+
+        return view('bookings.create', compact('slot', 'kartTypes', 'kartLimits'));
     }
 
     public function store(StoreBookingRequest $request): RedirectResponse
