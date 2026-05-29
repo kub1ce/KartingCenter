@@ -45,5 +45,17 @@ class ScheduleController extends Controller
         $tracks = Track::orderBy('name')->get();
 
         return view('schedule.index', compact('slots', 'tracks'));
-}
+    }
+
+    public function welcome()
+    {
+        $promotions = \App\Models\Promotion::where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+
+        return view('welcome', compact('promotions'));
+    }
 }

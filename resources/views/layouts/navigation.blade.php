@@ -9,6 +9,9 @@
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
+                        Главная
+                    </x-nav-link>
                     <x-nav-link :href="route('schedule.index')" :active="request()->routeIs('schedule.*')">
                         Расписание
                     </x-nav-link>
@@ -17,6 +20,9 @@
                     </x-nav-link>
                     <x-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">
                         Новости
+                    </x-nav-link>
+                    <x-nav-link :href="route('public.promotions.index')" :active="request()->routeIs('public.promotions.*')">
+                        Акции
                     </x-nav-link>
 
                     @auth
@@ -98,6 +104,9 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
+                {{ __('Главная') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('schedule.index')" :active="request()->routeIs('schedule.*')">
                 {{ __('Расписание') }}
             </x-responsive-nav-link>
@@ -106,6 +115,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">
                 {{ __('Новости') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('public.promotions.index')" :active="request()->routeIs('public.promotions.*')">
+                {{ __('Акции') }}
             </x-responsive-nav-link>
 
             @auth

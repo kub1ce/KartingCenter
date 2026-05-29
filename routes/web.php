@@ -7,9 +7,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TrackController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('schedule.index');
-});
+Route::get('/', [ScheduleController::class, 'welcome'])->name('welcome');
 
 // паблик
 Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
@@ -19,6 +17,9 @@ Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule.in
 // новости
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'publicIndex'])->name('public.news.index');
 Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'publicShow'])->name('public.news.show');
+
+// акции
+Route::get('/promotions', [\App\Http\Controllers\PromotionController::class, 'publicIndex'])->name('public.promotions.index');
 
 // учетная запись
 Route::middleware('guest')->group(function () {

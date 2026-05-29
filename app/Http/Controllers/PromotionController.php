@@ -69,4 +69,15 @@ class PromotionController extends Controller
         $promotion->delete();
         return redirect()->route('admin.promotions.index')->with('success', 'Акция удалена!');
     }
+
+    public function publicIndex()
+    {
+        $promotions = \App\Models\Promotion::where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->paginate(9);
+
+        return view('public.promotions.index', compact('promotions'));
+    }
 }
