@@ -45,7 +45,7 @@
 
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
-                            <button class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-lime-400 transition focus:outline-none">
+                            <button class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-lime-400 transition focus:outline-none focus:ring-0 focus:ring-offset-0 active:outline-none active:ring-0">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -60,7 +60,7 @@
                                 {{ Auth::user()->role_id->label() }}
                             </div>
 
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <x-dropdown-link :href="route('logout')" class="focus:ring-0 focus:ring-offset-0 focus:bg-lime-500/10 focus:text-lime-400" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 Выйти
                             </x-dropdown-link>
 

@@ -1,187 +1,107 @@
-@php use Carbon\Carbon; @endphp
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Бронирование #{{ $booking->id }}
-            </h2>
-            <a href="{{ route('bookings.index') }}"
-               class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                </svg>
-                Все бронирования
-            </a>
+<div class="cyber-grid min-h-screen px-4 sm:px-6 lg:px-8 py-10 max-w-4xl mx-auto">
+
+    <a href="{{ route('bookings.index') }}" class="text-gray-500 hover:text-lime-400 uppercase text-xs font-bold tracking-widest transition mb-8 inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Мои заезды
+    </a>
+
+    @php
+        $statusColors = [
+            'Pending' => ['border' => 'border-yellow-500', 'bg' => 'bg-yellow-500/20', 'text' => 'text-yellow-400', 'label' => 'ОЖИДАНИЕ ПОДТВЕРЖДЕНИЯ', 'stroke' => '#facc15'],
+            'Confirmed' => ['border' => 'border-lime-500', 'bg' => 'bg-lime-500/20', 'text' => 'text-lime-400', 'label' => 'ЗАЕЗД ПОДТВЕРЖДЕН', 'stroke' => '#a3e635'],
+            'Cancelled' => ['border' => 'border-red-500', 'bg' => 'bg-red-500/20', 'text' => 'text-red-400', 'label' => 'ЗАЕЗД ОТМЕНЕН', 'stroke' => '#ef4444'],
+            'Completed' => ['border' => 'border-gray-500', 'bg' => 'bg-gray-500/20', 'text' => 'text-gray-400', 'label' => 'ЗАЕЗД ЗАВЕРШЕН', 'stroke' => '#6b7280'],
+        ];
+        $statusKey = $booking->status->value;
+        if ($statusKey === 'Confirmed' && $booking->timeSlot->date < today()) $statusKey = 'Completed';
+        $s = $statusColors[$statusKey] ?? $statusColors['Pending'];
+        
+        $trackColors = [
+            'Easy' => 'text-lime-400',
+            'Medium' => 'text-yellow-400',
+            'Hard' => 'text-red-400',
+        ];
+        $trackColor = $trackColors[$booking->timeSlot->track->difficulty->name] ?? 'text-white';
+    @endphp
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <div class="flex items-center space-x-3 mb-2">
+                <span class="text-3xl font-black text-white font-mono tracking-tight">#{{ str_pad($booking->id, 3, '0', STR_PAD_LEFT) }}</span>
+                <span class="w-2 h-2 rounded-full {{ $s['text'] }} bg-current animate-pulse"></span>
+            </div>
+            <p class="text-xs {{ $s['text'] }} font-bold uppercase tracking-widest">{{ $s['label'] }}</p>
         </div>
-    </x-slot>
+        
+        @if($booking->status->value === 'Pending' || $booking->status->value === 'Confirmed')
+            <form action="{{ route('bookings.cancel', $booking) }}" method="POST" onsubmit="return confirm('Вы уверены, что хотите отменить заезд?');">
+                @csrf @method('PATCH')
+                <button type="submit" class="border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-6 py-2 font-black uppercase text-xs tracking-widest transition">
+                    Отменить заезд
+                </button>
+            </form>
+        @endif
+    </div>
 
-    <div class="py-8">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            @if (session('success'))
-                <div
-                    class="mb-6 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700 text-sm flex items-center gap-2">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clip-rule="evenodd"/>
-                    </svg>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @php
-                $statusConfig = match($booking->status) {
-                    'Pending'   => ['label' => 'Ожидает подтверждения', 'class' => 'bg-yellow-100 text-yellow-700', 'icon' => '⏳'],
-                    'Confirmed' => ['label' => 'Подтверждено', 'class' => 'bg-green-100 text-green-700', 'icon' => '✅'],
-                    'Cancelled' => ['label' => 'Отменено', 'class' => 'bg-red-100 text-red-700', 'icon' => '❌'],
-                    'Completed' => ['label' => 'Завершено', 'class' => 'bg-gray-100 text-gray-600', 'icon' => '🏁'],
-                    default     => ['label' => $booking->status, 'class' => 'bg-gray-100 text-gray-600', 'icon' => ''],
-                };
-
-                $canCancel = in_array($booking->status, ['Pending', 'Confirmed'])
-                          && $booking->timeSlot->date >= today();
-            @endphp
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Статус</p>
-                        <span
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold {{ $statusConfig['class'] }}">
-                            {{ $statusConfig['icon'] }} {{ $statusConfig['label'] }}
-                        </span>
-                    </div>
-                    @if ($booking->status === 'Pending')
-                        <p class="text-xs text-gray-400 max-w-xs text-right">
-                            Администратор подтвердит бронь в ближайшее время
-                        </p>
-                    @endif
-                </div>
+    <div class="glass-card rounded-xl p-6 md:p-8 mb-6 border-t-2 {{ $s['border'] }}">
+        <h3 class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-4 border-b border-white/5 pb-2">Маршрут и время</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-xs text-gray-600 uppercase tracking-wider mb-1">Трасса</p>
+                <p class="text-xl font-black {{ $trackColor }} uppercase">{{ $booking->timeSlot->track->name }}</p>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">{{ $booking->timeSlot->track->difficulty->name }} DIFFICULTY / {{ $booking->timeSlot->track->length }}м</p>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
-                <h3 class="font-semibold text-gray-800 mb-4 text-sm uppercase tracking-wider text-gray-500">
-                    Заезд
-                </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-xs text-gray-400">Трасса</p>
-                        <p class="font-semibold text-gray-800">{{ $booking->timeSlot->track->name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Сложность</p>
-                        <p class="font-semibold
-                            @if($booking->timeSlot->track->difficulty === 'Easy') text-green-600
-                            @elseif($booking->timeSlot->track->difficulty === 'Medium') text-yellow-600
-                            @else text-red-600 @endif">
-                            {{ match($booking->timeSlot->track->difficulty) {
-                                'Easy' => 'Лёгкая',
-                                'Medium' => 'Средняя',
-                                'Hard' => 'Сложная',
-                                default => $booking->timeSlot->track->difficulty
-                            } }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Дата</p>
-                        <p class="font-semibold text-gray-800">
-                            {{ Carbon::parse($booking->timeSlot->date)->translatedFormat('d F Y, l') }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Время</p>
-                        <p class="font-semibold text-gray-800">
-                            {{ Carbon::parse($booking->timeSlot->start_time)->format('H:i') }}
-                            –
-                            {{ Carbon::parse($booking->timeSlot->end_time)->format('H:i') }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Участников</p>
-                        <p class="font-semibold text-gray-800">{{ $booking->participants_count }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Длина трассы</p>
-                        <p class="font-semibold text-gray-800">{{ $booking->timeSlot->track->length }} м</p>
-                    </div>
-                </div>
+            <div>
+                <p class="text-xs text-gray-600 uppercase tracking-wider mb-1">Дата и время</p>
+                <p class="text-lg font-black text-white uppercase">{{ $booking->timeSlot->date->isoFormat('D MMMM, dddd') }}</p>
+                <p class="font-mono text-2xl font-black text-white tracking-wider mt-1">
+                    {{ \Carbon\Carbon::parse($booking->timeSlot->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->timeSlot->end_time)->format('H:i') }}
+                </p>
             </div>
-
-            @if ($booking->bookingKarts->count() > 0)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
-                    <h3 class="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4">
-                        Карты
-                    </h3>
-                    <div class="space-y-2">
-                        @foreach ($booking->bookingKarts as $bk)
-                            <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                                <div>
-                                    <p class="font-medium text-gray-800">{{ $bk->kartType->name }}</p>
-                                    <p class="text-xs text-gray-400">
-                                        {{ $bk->kartType->seats }} {{ $bk->kartType->seats === 1 ? 'место' : 'места' }}
-                                        · коэф. {{ $bk->kartType->price_modifier }}
-                                    </p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-semibold text-gray-700">× {{ $bk->quantity }}</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <div class="bg-indigo-50 rounded-xl border border-indigo-100 p-5 mb-5 flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-indigo-500">Итоговая стоимость</p>
-                    <p class="text-3xl font-bold text-indigo-700">
-                        {{ number_format($booking->total_price, 0, ',', ' ') }} ₽
-                    </p>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
-                <h3 class="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-3">
-                    Информация о записи
-                </h3>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <p class="text-xs text-gray-400">Создано</p>
-                        <p class="text-gray-700">{{ $booking->created_at->translatedFormat('d F Y, H:i') }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Номер брони</p>
-                        <p class="text-gray-700 font-mono">#{{ $booking->id }}</p>
-                    </div>
-                    @if ($booking->creator && $booking->creator->id !== $booking->user_id)
-                        <div class="col-span-2">
-                            <p class="text-xs text-gray-400">Запись создана администратором</p>
-                            <p class="text-gray-700">{{ $booking->creator->name }}</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <a href="{{ route('bookings.index') }}"
-                   class="flex-1 text-center px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition">
-                    К списку броней
-                </a>
-                @if ($canCancel)
-                    <form method="POST" action="{{ route('bookings.cancel', $booking) }}"
-                          onsubmit="return confirm('Вы уверены, что хотите отменить бронирование?')"
-                          class="flex-1">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                                class="w-full px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition">
-                            Отменить бронь
-                        </button>
-                    </form>
-                @endif
-            </div>
-
         </div>
     </div>
+
+    <div class="glass-card rounded-xl p-6 md:p-8 mb-6">
+        <h3 class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-4 border-b border-white/5 pb-2">Состав заезда</h3>
+        
+        <div class="space-y-4">
+            @foreach($booking->bookingKarts as $bk)
+                <div class="flex items-center justify-between bg-black/30 p-4 rounded-lg border border-white/5">
+                    <div>
+                        <p class="text-white font-bold uppercase text-sm">{{ $bk->kartType->name }} карт × {{ $bk->quantity }}</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Коэффициент: <span class="text-gray-400 font-mono">{{ $bk->kartType->price_modifier }}</span>
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        @php 
+                            $linePrice = $booking->timeSlot->track->price_per_slot * $bk->kartType->price_modifier * $bk->quantity;
+                        @endphp
+                        <p class="text-white font-bold font-mono">{{ number_format($linePrice, 0, ',', ' ') }} ₽</p>
+                    </div>
+                </div>
+            @endforeach
+            
+            <div class="flex items-center justify-between pt-2">
+                <p class="text-gray-400 font-bold uppercase text-sm">Общее количество участников</p>
+                <p class="text-white font-bold text-lg">{{ $booking->participants_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-xl p-6 md:p-8 border-l-4 {{ $s['border'] }} bg-black/50">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Итого к оплате</p>
+                <p class="text-4xl font-black text-white tracking-tight">{{ number_format($booking->total_price, 0, ',', ' ') }} <span class="text-xl text-gray-500">₽</span></p>
+            </div>
+            <div class="text-right text-xs text-gray-600 font-bold uppercase tracking-widest">
+                Бронь создана<br>
+                {{ $booking->created_at->isoFormat('D MMM YYYY, HH:mm') }}
+            </div>
+        </div>
+    </div>
+
+</div>
 </x-app-layout>
