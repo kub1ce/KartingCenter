@@ -56,6 +56,8 @@ class ScheduleController extends Controller
             ->limit(3)
             ->get();
 
-        return view('welcome', compact('promotions'));
+        $tracks = \App\Models\Track::all();
+
+        return view('welcome', compact('promotions', 'tracks'));
     }
 }

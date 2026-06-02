@@ -1,3 +1,122 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body {
+    background-color: #050505 !important;
+    color: #9ca3af !important;
+    background-image: radial-gradient(circle at 50% 0%, rgba(163, 230, 53, 0.08), transparent 60%);
+}
+
+nav {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+nav a, nav button, nav span {
+    color: #6b7280;
+}
+nav a:hover, nav button:hover {
+    color: #a3e635;
+}
+
+.neon-text-active {
+    color: #a3e635 !important;
+    text-shadow: 0 0 7px rgba(163, 230, 53, 0.6), 0 0 15px rgba(163, 230, 53, 0.4);
+}
+
+main, .bg-white, .bg-gray-100 {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+
+.dropdown-menu {
+    background: rgba(10, 10, 10, 0.95) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(163, 230, 53, 0.1) !important;
+    border-radius: 0.5rem !important;
+}
+
+.dropdown-menu a, .dropdown-menu button {
+    color: #9ca3af !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+}
+.dropdown-menu a:hover, .dropdown-menu button:hover {
+    background: rgba(163, 230, 53, 0.1) !important;
+    color: #a3e635 !important;
+}
+
+
+.sm\:hidden {
+    background-color: rgba(5, 5, 5, 0.95) !important;
+}
+
+
+/* фон */
+.cyber-grid {
+    background-size: 40px 40px;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+
+.glass-card {
+    background: rgba(10, 10, 10, 0.7);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px -10px var(--glow-color, rgba(163, 230, 53, 0.2));
+}
+
+
+.track-base { 
+    stroke: #222222; 
+    stroke-width: 12; 
+    fill: none; 
+    stroke-linejoin: round;
+}
+
+
+.track-glow {
+    stroke: currentColor; 
+    stroke-width: 12; 
+    fill: none; 
+    stroke-linejoin: round;
+    opacity: 0.3;
+    animation: pulseGlow 2s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+
+.track-dashes { 
+    stroke: currentColor; 
+    stroke-width: 6; 
+    fill: none; 
+    stroke-linecap: round;
+    stroke-dasharray: 30 120;
+    animation: dashMove 3s linear infinite; 
+}
+
+@keyframes dashMove {
+    to { stroke-dashoffset: -150; }
+}
+
+@keyframes pulseGlow {
+    from { opacity: 0.2; filter: drop-shadow(0 0 2px currentColor); }
+    to { opacity: 0.6; filter: drop-shadow(0 0 12px currentColor); }
+}

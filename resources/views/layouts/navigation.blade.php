@@ -1,14 +1,14 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+<nav x-data="{ open: false }" class="bg-black/60 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('schedule.index') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
+                    <a href="{{ route('welcome') }}" class="text-2xl font-black tracking-widest text-red-500 uppercase" style="text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">
+                        KART<span class="text-white">.CENTER</span>
                     </a>
                 </div>
 
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center uppercase text-sm font-bold tracking-wider">
                     <x-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
                         Главная
                     </x-nav-link>
@@ -28,46 +28,40 @@
                     @auth
                         @can('is-client')
                             <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
-                                {{ __('Мои брони') }}
+                                Мои брони
                             </x-nav-link>
                         @endcan
-
-                        @canany(['is-admin', 'is-content-manager'])
-                            <x-nav-link :href="route('admin.news.index')" :active="request()->routeIs('admin.*')">
-                                {{ __('Админ-панель') }}
-                            </x-nav-link>
-                        @endcanany
                     @endauth
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4 uppercase text-sm font-bold tracking-wider">
                 @auth
+                    @canany(['is-admin', 'is-content-manager'])
+                        <a href="{{ route('admin.news.index') }}" class="border border-lime-500/50 text-lime-400 hover:bg-lime-500 hover:text-black px-4 py-1.5 font-black transition text-xs hover:shadow-[0_0_15px_rgba(163,230,53,0.3)]">
+                            Админ-панель
+                        </a>
+                    @endcanany
+
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
-                            <button
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                            <button class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-lime-400 transition focus:outline-none">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                         viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                              clip-rule="evenodd"/>
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
                             </button>
                         </x-slot>
 
                         <x-slot name="content">
-                            <div
-                                class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-600">
+                            <div class="px-4 py-2 text-xs text-red-500 font-bold uppercase tracking-widest border-b border-white/5">
                                 {{ Auth::user()->role_id->label() }}
                             </div>
 
-                            <x-dropdown-link :href="route('logout')"
-                                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                {{ __('Выйти') }}
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                Выйти
                             </x-dropdown-link>
 
                             <form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">
@@ -76,75 +70,61 @@
                         </x-slot>
                     </x-dropdown>
                 @else
-                    <a href="{{ route('login') }}"
-                       class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 mr-4">
-                        {{ __('Войти') }}
+                    <a href="{{ route('login') }}" class="text-gray-500 hover:text-lime-400 transition">
+                        Войти
                     </a>
-                    <a href="{{ route('register') }}"
-                       class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-                        {{ __('Регистрация') }}
+                    <a href="{{ route('register') }}" class="border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-5 py-1.5 font-black uppercase tracking-wider transition text-xs hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                        Регистрация
                     </a>
                 @endauth
             </div>
 
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open"
-                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
+                <button @click="open = !open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-lime-400 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
-                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
-                              stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        <path :class="{'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path :class="{'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <!-- МОБИЛЬНОЕ МЕНЮ -->
+    <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden border-t border-white/5">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
-                {{ __('Главная') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('schedule.index')" :active="request()->routeIs('schedule.*')">
-                {{ __('Расписание') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('tracks.index')" :active="request()->routeIs('tracks.*')">
-                {{ __('Трассы') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">
-                {{ __('Новости') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('public.promotions.index')" :active="request()->routeIs('public.promotions.*')">
-                {{ __('Акции') }}
-            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">Главная</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('schedule.index')" :active="request()->routeIs('schedule.*')">Расписание</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('tracks.index')" :active="request()->routeIs('tracks.*')">Трассы</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('public.news.index')" :active="request()->routeIs('public.news.*')">Новости</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('public.promotions.index')" :active="request()->routeIs('public.promotions.*')">Акции</x-responsive-nav-link>
 
             @auth
                 @can('is-client')
                     <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
-                        {{ __('Мои брони') }}
+                        Мои брони
                     </x-responsive-nav-link>
                 @endcan
 
                 @canany(['is-admin', 'is-content-manager'])
-                    <x-responsive-nav-link :href="route('admin.news.index')">{{ __('Админ-панель') }}</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.news.index')" :active="request()->routeIs('admin.*')">
+                        Админ-панель
+                    </x-responsive-nav-link>
                 @endcanany
             @endauth
         </div>
 
         @auth
-            <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
+            <div class="pt-4 pb-1 border-t border-white/5">
                 <div class="px-4">
-                    <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
+                    <div class="font-medium text-base text-white uppercase font-black">{{ Auth::user()->name }}</div>
                     <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                    <div class="text-xs text-gray-400 mt-1">{{ Auth::user()->role_id->label() }}</div>
+                    <div class="text-xs text-red-500 mt-1 font-bold uppercase tracking-widest">{{ Auth::user()->role_id->label() }}</div>
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('logout')"
-                                           onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();">
-                        {{ __('Выйти') }}
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();">
+                        Выйти
                     </x-responsive-nav-link>
                     <form id="logout-form-mobile" method="POST" action="{{ route('logout') }}" class="hidden">
                         @csrf
@@ -152,9 +132,9 @@
                 </div>
             </div>
         @else
-            <div class="pt-4 pb-3 border-t border-gray-200 dark:border-gray-600 space-y-1 px-4">
-                <x-responsive-nav-link :href="route('login')">{{ __('Войти') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('register')">{{ __('Регистрация') }}</x-responsive-nav-link>
+            <div class="pt-4 pb-3 border-t border-white/5 space-y-1 px-4">
+                <x-responsive-nav-link :href="route('login')">Войти</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')">Регистрация</x-responsive-nav-link>
             </div>
         @endauth
     </div>
