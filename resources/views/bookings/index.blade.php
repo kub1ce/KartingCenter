@@ -85,10 +85,10 @@
                         @endphp
                         
                         <a href="{{ route('bookings.show', $booking) }}" class="group block">
-                            <div class="glass-card rounded-xl overflow-hidden border-l-4 {{ $isLiveNow ? 'border-orange-500 shadow-[0_0_25px_rgba(249,115,22,0.3)]' : $s['border'] }} hover:shadow-[0_0_15px_rgba(163,230,53,0.1)] transition-all duration-300 {{ $isLiveNow ? 'mt-6' : '' }}">
+                            <div class="glass-card rounded-xl overflow-hidden border-l-4 {{ $isLiveNow ? 'border-orange-500 shadow-[0_0_25px_rgba(249,115,22,0.4)]' : $s['border'] }} hover:shadow-[0_0_15px_rgba(163,230,53,0.2)] transition-all duration-300 {{ $isLiveNow ? 'mt-6' : '' }}">
                                 
                                 @if($isLiveNow)
-                                    <div class="bg-orange-500/10 border-b border-orange-500/30 px-5 py-2 flex items-center space-x-2">
+                                    <div class="bg-orange-500/30 border-b border-orange-500/50 px-5 py-2 flex items-center space-x-2">
                                         <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
                                         <span class="text-orange-400 text-[10px] font-black uppercase tracking-widest">LIVE</span>
                                     </div>
