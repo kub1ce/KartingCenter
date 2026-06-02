@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Promotion;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PromotionController extends Controller
 {
@@ -79,5 +80,14 @@ class PromotionController extends Controller
             ->paginate(9);
 
         return view('public.promotions.index', compact('promotions'));
+    }
+
+    public function publicShow(\App\Models\Promotion $promotion): View
+    {
+        if (!$promotion->is_active || $promotion->end_date < now()) {
+            abort(404);
+        }
+
+        return view('public.promotions.show', compact('promotion'));
     }
 }

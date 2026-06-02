@@ -20,6 +20,7 @@ Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'public
 
 // акции
 Route::get('/promotions', [\App\Http\Controllers\PromotionController::class, 'publicIndex'])->name('public.promotions.index');
+Route::get('/promotions/{promotion}', [\App\Http\Controllers\PromotionController::class, 'publicShow'])->name('public.promotions.show');
 
 // учетная запись
 Route::middleware('guest')->group(function () {

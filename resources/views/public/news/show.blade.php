@@ -1,16 +1,29 @@
 <x-app-layout>
-<div class="container mx-auto px-4 py-8 max-w-3xl">
-    <a href="{{ route('public.news.index') }}" class="text-blue-500 hover:text-blue-700 mb-4 inline-block">&larr; Назад к новостям</a>
-    
-    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $news->title }}</h1>
-    <p class="text-sm text-gray-500 mb-6">{{ $news->published_at->format('d.m.Y H:i') }}</p>
+<div class="cyber-grid min-h-screen px-4 sm:px-6 lg:px-8 py-10 max-w-4xl mx-auto">
 
-    @if($news->image_url)
-        <img src="{{ $news->image_url }}" alt="{{ $news->title }}" class="w-full rounded-lg shadow mb-6">
-    @endif
+    <a href="{{ route('public.news.index') }}" class="text-gray-500 hover:text-lime-400 uppercase text-xs font-bold tracking-widest transition mb-8 inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Все новости
+    </a>
 
-    <div class="prose max-w-none text-gray-700 leading-relaxed">
-        {!! nl2br(e($news->content)) !!}
-    </div>
+    <article>
+        <div class="mb-8 border-l-4 border-lime-500 pl-4">
+            <h1 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">{{ $news->title }}</h1>
+            <p class="text-lime-400 font-bold uppercase tracking-widest text-sm font-mono">
+                {{ $news->published_at ? \Carbon\Carbon::parse($news->published_at)->format('d.m.Y H:i') : $news->created_at->format('d.m.Y H:i') }}
+            </p>
+        </div>
+
+        @if($news->image_url)
+            <div class="mb-8 rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+                <img src="{{ $news->image_url }}" alt="{{ $news->title }}" class="w-full object-cover max-h-[500px]">
+            </div>
+        @endif
+
+        <div class="glass-card rounded-xl p-6 md:p-8 text-gray-300 leading-relaxed space-y-4">
+            {!! nl2br(e($news->content)) !!}
+        </div>
+    </article>
+
 </div>
 </x-app-layout>
