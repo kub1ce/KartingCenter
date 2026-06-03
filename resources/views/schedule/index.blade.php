@@ -4,7 +4,6 @@
 
     <h1 class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-red-500 pl-4">Расписание заездов</h1>
 
-    <!-- ФИЛЬТРЫ: ДАТЫ -->
     <div class="mb-6">
         <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide">
             @foreach($dates as $d)
@@ -17,7 +16,6 @@
         </div>
     </div>
 
-    <!-- ФИЛЬТРЫ: ТРАССЫ -->
     <div class="mb-6 flex flex-wrap gap-3">
         <a href="{{ route('schedule.index', request()->except('track_id')) }}" 
            class="border {{ !request('track_id') ? 'border-white/20 text-white bg-white/5' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white' }} px-4 py-1.5 font-black uppercase text-xs tracking-widest transition">
@@ -38,7 +36,6 @@
         @endforeach
     </div>
 
-    <!-- ФИЛЬТРЫ: ВРЕМЯ (Чекбоксы в виде кнопок) -->
     <form method="GET" action="{{ route('schedule.index') }}" class="mb-10">
         <input type="hidden" name="track_id" value="{{ request('track_id') }}">
         <input type="hidden" name="date" value="{{ request('date') }}">
@@ -60,7 +57,6 @@
         </div>
     </form>
 
-    <!-- КОНТЕНТ -->
     @if($slotsData->isEmpty())
         <div class="glass-card rounded-xl p-6 text-center text-gray-500 font-bold uppercase tracking-widest">
             Свободных слотов не найдено.
@@ -80,23 +76,19 @@
                 @foreach($daySlots as $timeKey => $timeSlots)
                     <div class="md:flex mb-8">
                         
-                        <!-- ДЕСКТОП: Таймлайн (скрыт на мобилке) -->
                         <div class="hidden md:flex flex-col items-center w-32 flex-shrink-0 border-r-2 border-white/10 relative pr-4">
                             <div class="absolute -right-[7px] top-1 w-3 h-3 bg-lime-500 rounded-full shadow-[0_0_10px_rgba(163,230,53,0.6)]"></div>
                             <div class="text-lg font-black text-white tracking-wider text-right w-full">{{ explode(' - ', $timeKey)[0] }}</div>
                             <div class="text-xs font-bold text-gray-500 tracking-wider text-right w-full">– {{ explode(' - ', $timeKey)[1] }}</div>
                         </div>
 
-                        <!-- Обертка контента -->
                         <div class="flex-1 w-full">
-                            <!-- МОБИЛКА: Заголовок времени (скрыт на десктопе, стилизован под лейбл) -->
                             <div class="md:hidden mb-4">
                                 <div class="text-base font-black text-white uppercase tracking-wider border-l-4 border-lime-500 pl-3 py-1">
                                     {{ $timeKey }}
                                 </div>
                             </div>
 
-                            <!-- СЛОТЫ -->
                             <div class="pl-0 md:pl-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                                 @php $busyStarted = false; @endphp
                                 

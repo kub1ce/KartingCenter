@@ -55,13 +55,18 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
     
     // онли адмик
     Route::middleware(['role:Administrator'])->group(function () {
-        Route::resource('karts', \App\Http\Controllers\KartController::class);
+        Route::get('slots/generate', [\App\Http\Controllers\SlotController::class, 'createGenerate'])->name('slots.generate');
+        Route::post('slots/generate', [\App\Http\Controllers\SlotController::class, 'storeGenerate'])->name('slots.generate.store');
         Route::resource('slots', \App\Http\Controllers\SlotController::class)->only(['index', 'edit', 'update']);
+
+        Route::resource('karts', \App\Http\Controllers\KartController::class);
+
         Route::get('bookings', [\App\Http\Controllers\BookingAdminController::class, 'index'])->name('bookings.index');
         Route::patch('bookings/{booking}/confirm', [\App\Http\Controllers\BookingAdminController::class, 'confirm'])->name('bookings.confirm');
         Route::patch('bookings/{booking}/cancel', [\App\Http\Controllers\BookingAdminController::class, 'cancel'])->name('bookings.cancel');
         Route::get('bookings/create', [\App\Http\Controllers\BookingAdminController::class, 'create'])->name('bookings.create');
         Route::post('bookings', [\App\Http\Controllers\BookingAdminController::class, 'store'])->name('bookings.store');
+        
         Route::get('users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
     });
 });
