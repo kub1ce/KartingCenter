@@ -132,7 +132,7 @@
                 </div>
             </div>
         @else
-            <div class="pt-4 pb-3 border-t border-white/5 space-y-1 px-4">
+            <div class="pt-4 pb-3 border-t border-white/5 space-y-1">
                 <x-responsive-nav-link :href="route('login')">Войти</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('register')">Регистрация</x-responsive-nav-link>
             </div>
