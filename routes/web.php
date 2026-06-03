@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
     Route::resource('news', \App\Http\Controllers\NewsController::class);
     Route::resource('promotions', \App\Http\Controllers\PromotionController::class);
     Route::resource('tracks', \App\Http\Controllers\AdminTrackController::class);
+    Route::resource('tracks', \App\Http\Controllers\AdminTrackController::class)->only(['index', 'create', 'store', 'edit', 'update']);
     
     // онли адмик
     Route::middleware(['role:Administrator'])->group(function () {

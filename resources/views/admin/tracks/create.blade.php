@@ -1,34 +1,34 @@
 <x-admin-layout>
 <div>
-    <h1 class="text-xl md:text-2xl font-black text-white uppercase tracking-wider border-l-4 border-yellow-500 pl-4 mb-8">Редактирование: {{ $track->name }}</h1>
+    <h1 class="text-xl md:text-2xl font-black text-white uppercase tracking-wider border-l-4 border-lime-500 pl-4 mb-8">Новая трасса</h1>
 
-        <div class="flex flex-col lg:flex-row gap-8" x-data="{ 
-        svgCode: {{ Js::from(old('svg_code', $track->svg_code ?? '')) }},
-        difficulty: '{{ old('difficulty', $track->difficulty->name) }}',
+    <div class="flex flex-col lg:flex-row gap-8" x-data="{ 
+        svgCode: '',
+        difficulty: '{{ old('difficulty', 'Easy') }}',
         difficultyOpen: false 
     }">
         
         <div class="w-full lg:w-1/2">
             <div class="glass-card p-6 rounded-xl">
-                <form action="{{ route('admin.tracks.update', $track->id) }}" method="POST">
-                    @csrf @method('PUT')
+                <form action="{{ route('admin.tracks.store') }}" method="POST">
+                    @csrf
 
                     <div class="mb-5">
                         <label class="block text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-widest" for="name">Название</label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $track->name) }}" 
+                        <input type="text" name="name" id="name" value="{{ old('name') }}" 
                                class="w-full bg-black/50 border border-white/10 text-white py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm font-bold">
                     </div>
 
                     <div class="mb-5">
                         <label class="block text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-widest" for="description">Описание</label>
                         <textarea name="description" id="description" rows="4" 
-                                  class="w-full bg-black/50 border border-white/10 text-gray-300 py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm leading-relaxed">{{ old('description', $track->description) }}</textarea>
+                                  class="w-full bg-black/50 border border-white/10 text-gray-300 py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm leading-relaxed">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="flex gap-4 mb-5">
                         <div class="w-1/2">
                             <label class="block text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-widest" for="length">Длина (м)</label>
-                            <input type="number" name="length" id="length" value="{{ old('length', $track->length) }}" 
+                            <input type="number" name="length" id="length" value="{{ old('length') }}" 
                                    class="w-full bg-black/50 border border-white/10 text-white py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm font-mono">
                         </div>
                         <div class="w-1/2 relative">
@@ -82,12 +82,12 @@
                     <div class="flex gap-4 mb-5">
                         <div class="w-1/2">
                             <label class="block text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-widest" for="max_participants">Макс. участников</label>
-                            <input type="number" name="max_participants" id="max_participants" value="{{ old('max_participants', $track->max_participants) }}" 
+                            <input type="number" name="max_participants" id="max_participants" value="{{ old('max_participants') }}" 
                                    class="w-full bg-black/50 border border-white/10 text-white py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm font-mono">
                         </div>
                         <div class="w-1/2">
                             <label class="block text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-widest" for="price_per_slot">Цена за слот (₽)</label>
-                            <input type="number" name="price_per_slot" id="price_per_slot" step="0.01" value="{{ old('price_per_slot', $track->price_per_slot) }}" 
+                            <input type="number" name="price_per_slot" id="price_per_slot" step="0.01" value="{{ old('price_per_slot') }}" 
                                    class="w-full bg-black/50 border border-white/10 text-white py-3 px-4 rounded-md focus:border-lime-500 focus:ring-0 focus:outline-none transition text-sm font-mono">
                         </div>
                     </div>
@@ -101,7 +101,7 @@
 
                     <div class="flex items-center justify-between pt-4 border-t border-white/5">
                         <button type="submit" class="bg-lime-500 hover:bg-lime-400 text-black font-black py-2.5 px-6 uppercase text-xs tracking-widest transition hover:shadow-[0_0_15px_rgba(163,230,53,0.4)]">
-                            Сохранить
+                            Создать трассу
                         </button>
                         <a href="{{ route('admin.tracks.index') }}" class="text-gray-600 hover:text-white text-xs font-bold uppercase tracking-widest transition">Отмена</a>
                     </div>
@@ -113,7 +113,6 @@
             <h2 class="text-sm font-black text-gray-500 uppercase tracking-widest mb-4">Предпросмотр анимации</h2>
             
             <div class="glass-card rounded-xl overflow-visible p-8 min-h-[400px] flex items-center justify-center relative">
-                
                 <template x-if="true">
                     <svg viewBox="0 0 500 400" class="w-full h-full absolute inset-0 p-8" style="overflow: visible;">
                         <path class="track-base" x-bind:d="svgCode" />

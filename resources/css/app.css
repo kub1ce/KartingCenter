@@ -127,3 +127,15 @@ main, .bg-white, .bg-gray-100 {
     0% { stroke-dashoffset: 0; }
     100% { stroke-dashoffset: -900; }
 }
+
+select option {
+    background-color: #050505 !important;
+    color: #9ca3af !important;
+    border: none !important;
+}
+
+select option:checked,
+select option:hover {
+    background-color: rgba(163, 230, 53, 0.2) !important;
+    color: #a3e635 !important;
+}

@@ -18,6 +18,7 @@ class Track extends Model
         'difficulty',
         'max_participants',
         'price_per_slot',
+        'svg_code',
     ];
 
     protected function casts(): array

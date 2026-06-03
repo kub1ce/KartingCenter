@@ -23,7 +23,7 @@
 
     @if($promotions->isNotEmpty())
     <div class="mb-20">
-        <h2 class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4">Горячие акции</h2>
+        <a class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4" href="{{ route('public.promotions.index') }}">Горячие акции</a>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach($promotions as $promo)
                 <div class="glass-card rounded-xl p-6" style="--glow-color: rgba(239, 68, 68, 0.3);">
@@ -38,7 +38,7 @@
     @endif
 
     <!-- TRACKS GRID -->
-    <h2 class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4">Наши трассы</h2>
+    <a class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4" href="{{ route('tracks.index') }}">Наши трассы</a>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-20">
         
         @foreach($tracks as $track)
@@ -49,16 +49,27 @@
                     'Hard' => ['text' => 'text-red-500', 'bg' => 'bg-red-500/20', 'border' => 'border-red-500/50', 'label' => 'HARD', 'labelColor' => 'text-red-400'],
                 ];
                 $c = $colors[$track->difficulty->name] ?? $colors['Easy'];
+                
+                $defaultPaths = [
+                    'Easy' => 'M 80 200 C 80 80, 420 80, 420 200 C 420 320, 80 320, 80 200',
+                    'Medium' => 'M 100 50 L 400 50 L 450 150 L 350 200 L 400 300 L 150 350 L 50 250 Z',
+                    'Hard' => 'M 80 50 L 420 50 L 450 120 L 300 180 L 420 260 L 380 350 L 100 350 L 60 260 L 200 180 L 60 120 Z'
+                ];
+                $svgPath = $track->svg_code ?? ($defaultPaths[$track->difficulty->name] ?? $defaultPaths['Easy']);
             @endphp
 
             <div class="glass-card rounded-xl overflow-hidden group cursor-pointer" style="--glow-color: rgba(163, 230, 53, 0.2);">
-                <div class="h-56 bg-black/50 relative flex items-center justify-center p-4 border-b border-white/5">
-                    <svg viewBox="0 0 500 400" class="w-full h-full">
-                        <path class="track-base" d="M 50 200 Q 150 50 250 150 T 450 200 T 250 350 T 50 200" />
-                        <path class="track-glow {{ $c['text'] }}" d="M 50 200 Q 150 50 250 150 T 450 200 T 250 350 T 50 200" />
-                        <path class="track-dashes {{ $c['text'] }}" d="M 50 200 Q 150 50 250 150 T 450 200 T 250 350 T 50 200" />
+                <div class="h-56 bg-black/50 relative flex items-center justify-center p-4 border-b border-white/5 overflow-hidden">
+                    
+                    <svg viewBox="0 0 500 400" class="w-[120%] h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500" style="overflow: visible;">
+                        <path class="track-base" d="{{ $svgPath }}" />
+                        <path class="track-glow {{ $c['text'] }}" d="{{ $svgPath }}" />
+                        <path class="track-dashes {{ $c['text'] }}" d="{{ $svgPath }}" />
                     </svg>
-                    <div class="absolute top-4 right-4 {{ $c['bg'] }} border {{ $c['border'] }} {{ $c['labelColor'] }} text-xs font-black px-3 py-1 rounded-full tracking-widest backdrop-blur-sm">
+
+                    <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[rgba(10,10,10,0.95)] to-transparent pointer-events-none z-10"></div>
+                    
+                    <div class="absolute top-4 right-4 {{ $c['bg'] }} border {{ $c['border'] }} {{ $c['labelColor'] }} text-xs font-black px-3 py-1 rounded-full tracking-widest backdrop-blur-sm z-20">
                         {{ $c['label'] }}
                     </div>
                 </div>
