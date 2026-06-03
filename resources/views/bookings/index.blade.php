@@ -53,17 +53,24 @@
                                 $iconType = 'live';
                                 $isLiveNow = true;
                             } elseif ($now < $startTime) {
-                                $diffInMinutes = (int) $startTime->diffInMinutes($now);
+                                $diffInMinutes = (int) $now->diffInMinutes($startTime);
                                 
-                                $hours = floor($diffInMinutes / 60);
+                                $daysLeft = (int) today()->diffInDays($booking->timeSlot->date);
+                                $hours = (int) floor(($diffInMinutes % 1440) / 60);
                                 $minutes = $diffInMinutes % 60;
                                 
                                 $timeStr = '';
+                                if ($daysLeft > 0) {
+                                    $timeStr .= $daysLeft . ' ' . $plural($daysLeft, 'день', 'дня', 'дней');
+                                }
                                 if ($hours > 0) {
-                                    $timeStr .= $hours . ' ' . $plural($hours, 'час', 'часа', 'часов');
+                                    $timeStr .= ($timeStr ? ' ' : '') . $hours . ' ' . $plural($hours, 'час', 'часа', 'часов');
                                 }
                                 if ($minutes > 0) {
-                                    $timeStr .= ($hours > 0 ? ' ' : '') . $minutes . ' ' . $plural($minutes, 'минуту', 'минуты', 'минут');
+                                    $timeStr .= ($timeStr ? ' ' : '') . $minutes . ' ' . $plural($minutes, 'минуту', 'минуты', 'минут');
+                                }
+                                if (empty($timeStr)) {
+                                    $timeStr = 'менее минуты';
                                 }
 
                                 if ($booking->timeSlot->date->isToday()) {
@@ -76,8 +83,7 @@
                                 } elseif ($booking->timeSlot->date->isTomorrow()) {
                                     $timeToStart = 'Завтра';
                                 } else {
-                                    $daysLeft = now()->diffInDays($booking->timeSlot->date);
-                                    $timeToStart = "Через $daysLeft " . $plural($daysLeft, 'день', 'дня', 'дней');
+                                    $timeToStart = "Через $timeStr";
                                 }
                             } else {
                                 $timeToStart = "Завершен";
