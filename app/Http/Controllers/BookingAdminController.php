@@ -4,95 +4,141 @@ namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
-use Illuminate\Http\Request;
+use App\Models\KartType;
 use App\Models\TimeSlot;
 use App\Models\User;
+use App\Services\BookingPriceCalculator;
+use App\Services\KartAvailabilityService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class BookingAdminController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = Booking::with(['user', 'timeSlot.track', 'bookingKarts.kartType']);
+    public function __construct(
+        private readonly BookingPriceCalculator $priceCalculator
+    ) {}
 
-        if (!$request->filled('show_past')) {
-            $query->whereHas('timeSlot', function ($q) {
-                $q->where('date', '>=', now()->toDateString());
-            });
-        }
+    public function index(Request $request): View
+    {
+        $statuses = BookingStatus::cases();
+        $tracks = \App\Models\Track::orderBy('name')->get();
+
+        $query = Booking::with(['user', 'timeSlot.track', 'bookingKarts.kartType']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
         if ($request->filled('track_id')) {
-            $query->whereHas('timeSlot', function ($q) use ($request) {
-                $q->where('track_id', $request->track_id);
-            });
-        }
-        if ($request->filled('date')) {
-            $query->whereHas('timeSlot', function ($q) use ($request) {
-                $q->where('date', $request->date);
-            });
+            $query->whereHas('timeSlot', fn($q) => $q->where('track_id', $request->track_id));
         }
 
-        $bookings = $query->orderBy('created_at', 'desc')->paginate(15);
-        $tracks = \App\Models\Track::all();
-        $statuses = \App\Enums\BookingStatus::cases();
-
-        if ($request->wantsJson()) {
-            return response()->json($bookings);
-        }
-
-        return view('admin.bookings.index', compact('bookings', 'tracks', 'statuses'));
-    }
-
-    public function confirm(Booking $booking)
-    {
-        $booking->update(['status' => BookingStatus::Confirmed]);
-        return redirect()->route('admin.bookings.index')->with('success', 'Бронирование подтверждено!');
-    }
-
-    public function cancel(Booking $booking)
-    {
-        $booking->update(['status' => BookingStatus::Cancelled]);
-        return redirect()->route('admin.bookings.index')->with('success', 'Бронирование отклонено!');
-    }
-
-    public function create()
-    {
-        $users = User::where('role_id', \App\Enums\Role::User)->get();
+        $showPast = $request->filled('show_past') || $request->status === 'Cancelled' || $request->status === 'Completed';
         
-        $freeSlots = TimeSlot::where('is_blocked', false)
-            ->whereDoesntHave('bookings', function ($query) {
-                $query->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]);
-            })
-            ->with('track')
-            ->get();
+        if ($request->filled('date')) {
+            $query->whereHas('timeSlot', fn($q) => $q->where('date', $request->date));
+        } elseif (!$showPast) {
+            $query->whereHas('timeSlot', fn($q) => $q->where('date', '>=', today()->toDateString()));
+        }
 
-        return view('admin.bookings.create', compact('users', 'freeSlots'));
+        $bookings = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+
+        return view('admin.bookings.index', compact('bookings', 'statuses', 'tracks'));
     }
 
-    public function store(Request $request)
+    public function create(Request $request): View
+    {
+        $users = User::where('role_id', 1)->orderBy('name')->get();
+        $kartTypes = KartType::all();
+        
+        $selectedSlot = null;
+        if ($request->filled('slot_id')) {
+            $selectedSlot = TimeSlot::with('track')->find($request->slot_id);
+        }
+
+        return view('admin.bookings.create', compact('users', 'kartTypes', 'selectedSlot'));
+    }
+
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'time_slot_id' => 'required|exists:time_slots,id',
             'participants_count' => 'required|integer|min:1',
+            'karts' => 'nullable|array',
+            'karts.*.kart_type_id' => 'required_with:karts|exists:kart_types,id',
+            'karts.*.quantity' => 'required_with:karts|integer|min:0',
         ]);
 
-        $slot = TimeSlot::find($validated['time_slot_id']);
-        if ($slot->is_blocked) {
-            return back()->withErrors('Этот слот заблокирован!')->withInput();
+        $booking = DB::transaction(function () use ($validated) {
+            $slot = TimeSlot::with('track')
+                ->lockForUpdate()
+                ->findOrFail($validated['time_slot_id']);
+
+            if ($slot->is_blocked) {
+                return null;
+            }
+
+            $kartsData = collect($validated['karts'] ?? [])
+                ->filter(fn($k) => (int)($k['quantity'] ?? 0) > 0)
+                ->values()
+                ->toArray();
+
+            $availabilityService = new KartAvailabilityService();
+            $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
+
+            foreach ($kartsData as $kart) {
+                $typeId = $kart['kart_type_id'];
+                $requestedQty = $kart['quantity'];
+                $freeQty = $availableKarts[$typeId]['max'] ?? 0;
+
+                if ($requestedQty > $freeQty) {
+                    $validator = Validator::make([], []);
+                    $validator->errors()->add('karts', "Недостаточно свободных картов выбранного типа. Доступно: {$freeQty}");
+                    throw new \Illuminate\Validation\ValidationException($validator);
+                }
+            }
+
+            $totalPrice = $this->priceCalculator->calculate($slot, $kartsData);
+
+            $booking = Booking::create([
+                'user_id' => $validated['user_id'],
+                'time_slot_id' => $slot->id,
+                'participants_count' => $validated['participants_count'],
+                'status' => BookingStatus::Confirmed->value,
+                'total_price' => $totalPrice,
+                'created_by' => auth()->id(),
+            ]);
+
+            foreach ($kartsData as $kart) {
+                $booking->bookingKarts()->create([
+                    'kart_type_id' => $kart['kart_type_id'],
+                    'quantity' => $kart['quantity'],
+                ]);
+            }
+
+            return $booking;
+        });
+
+        if (!$booking) {
+            return back()->withInput()->withErrors(['time_slot_id' => 'Слот заблокирован или недоступен.']);
         }
 
-        Booking::create([
-            'user_id' => $validated['user_id'],
-            'time_slot_id' => $validated['time_slot_id'],
-            'participants_count' => $validated['participants_count'],
-            'status' => BookingStatus::Confirmed,
-            'created_by' => auth()->id(),
-            'total_price' => $slot->track->price_per_slot * $validated['participants_count'],
-        ]);
+        return redirect()->route('admin.bookings.index')->with('success', 'Бронь успешно создана и подтверждена!');
+    }
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Бронирование успешно создано!');
+    public function confirm(Booking $booking): RedirectResponse
+    {
+        $booking->update(['status' => BookingStatus::Confirmed->value]);
+        return back()->with('success', 'Бронь подтверждена.');
+    }
+
+    public function cancel(Booking $booking): RedirectResponse
+    {
+        $booking->update(['status' => BookingStatus::Cancelled->value]);
+        return back()->with('success', 'Бронь отменена.');
     }
 }
