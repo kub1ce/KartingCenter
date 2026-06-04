@@ -111,6 +111,12 @@ class BookingController extends Controller
                 ->values()
                 ->toArray();
             
+            if (empty($kartsData)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'karts' => 'Необходимо выбрать хотя бы один карт для бронирования.'
+                ]);
+            }
+
             $availabilityService = new KartAvailabilityService();
             $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
 

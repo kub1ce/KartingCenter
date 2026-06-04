@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
+use App\Enums\Role;
 use App\Models\Booking;
 use App\Models\KartType;
 use App\Models\TimeSlot;
@@ -51,7 +52,7 @@ class BookingAdminController extends Controller
 
     public function create(Request $request): View
     {
-        $users = User::where('role_id', 1)->orderBy('name')->get();
+        $users = User::where('role_id', Role::User)->orderBy('name')->get();
         $kartTypes = KartType::all();
         
         $selectedSlot = null;
@@ -73,6 +74,15 @@ class BookingAdminController extends Controller
             'karts.*.quantity' => 'required_with:karts|integer|min:0',
         ]);
 
+        $kartsData = collect($validated['karts'] ?? [])
+            ->filter(fn($k) => (int)($k['quantity'] ?? 0) > 0);
+
+        if ($kartsData->isEmpty()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'karts' => 'Необходимо выбрать хотя бы один карт для бронирования.'
+            ]);
+        }
+
         $booking = DB::transaction(function () use ($validated) {
             $slot = TimeSlot::with('track')
                 ->lockForUpdate()
@@ -86,6 +96,12 @@ class BookingAdminController extends Controller
                 ->filter(fn($k) => (int)($k['quantity'] ?? 0) > 0)
                 ->values()
                 ->toArray();
+
+            if (empty($kartsData)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'karts' => 'Необходимо выбрать хотя бы один карт для бронирования.'
+                ]);
+            }
 
             $availabilityService = new KartAvailabilityService();
             $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);

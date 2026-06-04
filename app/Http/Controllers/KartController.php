@@ -6,6 +6,7 @@ use App\Enums\KartStatus;
 use App\Models\Kart;
 use App\Models\KartType;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
 
 class KartController extends Controller
 {
@@ -31,9 +32,9 @@ class KartController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'number' => 'required|string|max:10|unique:karts',
+            'number' => 'required|string|max:10|unique:karts,number,' . $kart->id,
             'kart_type_id' => 'required|exists:kart_types,id',
-            'status' => 'required|string',
+            'status' => ['required', new Enum(\App\Enums\KartStatus::class)],
         ]);
 
         $validated['status'] = KartStatus::from($validated['status'])->value;
@@ -56,7 +57,7 @@ class KartController extends Controller
         $validated = $request->validate([
             'number' => 'required|string|max:10|unique:karts,number,' . $kart->id,
             'kart_type_id' => 'required|exists:kart_types,id',
-            'status' => 'required|string',
+            'status' => ['required', new Enum(\App\Enums\KartStatus::class)],
         ]);
 
         $newStatus = \App\Enums\KartStatus::from($validated['status']);
