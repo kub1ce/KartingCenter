@@ -35,6 +35,10 @@ class PromotionController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
+        if (!isset($validated['is_active'])) {
+            $validated['is_active'] = false;
+        }
+
         Promotion::create($validated);
 
         return redirect()->route('admin.promotions.index')->with('success', 'Акция создана!');
