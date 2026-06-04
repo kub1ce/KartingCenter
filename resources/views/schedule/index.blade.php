@@ -4,62 +4,77 @@
 
     <h1 class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-red-500 pl-4">Расписание заездов</h1>
 
-    <div class="mb-6">
-        <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide">
-            @foreach($dates as $d)
-                @php $isActiveDate = request('date') == $d->toDateString() || (!request('date') && $d->isToday()); @endphp
-                <a href="{{ route('schedule.index', array_merge(request()->except('date'), ['date' => $d->toDateString()])) }}" 
-                   class="flex-shrink-0 border {{ $isActiveDate ? 'bg-lime-500 text-black border-lime-500 font-black shadow-[0_0_15px_rgba(163,230,53,0.3)]' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white' }} px-5 py-2 font-bold uppercase text-xs tracking-widest transition">
-                    {{ $d->isoFormat('D MMM, dd') }}
-                </a>
-            @endforeach
-        </div>
-    </div>
-
-    <div class="mb-6 flex flex-wrap gap-3">
-        <a href="{{ route('schedule.index', request()->except('track_id')) }}" 
-           class="border {{ !request('track_id') ? 'border-white/20 text-white bg-white/5' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white' }} px-4 py-1.5 font-black uppercase text-xs tracking-widest transition">
-            Все трассы
-        </a>
-        @foreach($tracks as $track)
-            @php
-                $cTrack = [
-                    'Easy' => ['border' => 'border-lime-500/50', 'text' => 'text-lime-400', 'hover' => 'hover:bg-lime-500 hover:text-black'],
-                    'Medium' => ['border' => 'border-yellow-500/50', 'text' => 'text-yellow-400', 'hover' => 'hover:bg-yellow-500 hover:text-black'],
-                    'Hard' => ['border' => 'border-red-500/50', 'text' => 'text-red-400', 'hover' => 'hover:bg-red-500 hover:text-black'],
-                ][$track->difficulty->name] ?? ['border' => 'border-gray-500/50', 'text' => 'text-gray-400', 'hover' => 'hover:bg-gray-500'];
-            @endphp
-            <a href="{{ route('schedule.index', array_merge(request()->except('track_id'), ['track_id' => $track->id])) }}" 
-               class="border {{ request('track_id') == $track->id ? $cTrack['border'] . ' ' . $cTrack['text'] . ' bg-white/5' : $cTrack['border'] . ' ' . $cTrack['text'] . ' ' . $cTrack['hover'] }} px-4 py-1.5 font-black uppercase text-xs tracking-widest transition">
-                {{ $track->name }}
-            </a>
-        @endforeach
-    </div>
-
-    <form method="GET" action="{{ route('schedule.index') }}" class="mb-10">
-        <input type="hidden" name="track_id" value="{{ request('track_id') }}">
-        <input type="hidden" name="date" value="{{ request('date') }}">
+    <form method="GET" action="{{ route('schedule.index') }}" class="mb-10 space-y-6">
         
-        <div class="flex flex-wrap gap-2">
-            <span class="text-gray-500 text-xs font-bold uppercase tracking-widest py-1.5 mr-2">Время:</span>
-            @foreach($timeOptions as $time)
-                @php 
-                    $timeVal = \Carbon\Carbon::parse($time->start_time)->format('H:i');
-                    $isChecked = in_array($timeVal, request('times', [])); 
-                @endphp
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="times[]" value="{{ $timeVal }}" class="hidden peer" {{ $isChecked ? 'checked' : '' }} onchange="this.form.submit()">
-                    <div class="border border-gray-700 text-gray-500 px-3 py-1.5 font-bold uppercase text-xs tracking-widest transition peer-checked:bg-lime-500/20 peer-checked:border-lime-500/50 peer-checked:text-lime-400 hover:border-white hover:text-white">
-                        {{ \Carbon\Carbon::parse($time->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($time->end_time)->format('H:i') }}
-                    </div>
-                </label>
-            @endforeach
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-500 text-xs font-bold uppercase tracking-widest">Даты:</span>
+                @if(request()->hasAny(['date', 'track_id', 'times']))
+                    <a href="{{ route('schedule.index') }}" class="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-widest font-bold transition">Сбросить всё</a>
+                @endif
+            </div>
+            <div class="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide">
+                @foreach($dates as $d)
+                    @php 
+                        $dateVal = $d->toDateString(); 
+                        $isChecked = in_array($dateVal, request('date', [])); 
+                    @endphp
+                    <label class="cursor-pointer flex-shrink-0">
+                        <input type="checkbox" name="date[]" value="{{ $dateVal }}" class="hidden peer" {{ $isChecked ? 'checked' : '' }} onchange="this.form.submit()">
+                        <div class="border {{ $isChecked ? 'bg-lime-500 text-black border-lime-500 font-black shadow-[0_0_15px_rgba(163,230,53,0.3)]' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white' }} px-5 py-2 font-bold uppercase text-xs tracking-widest transition peer-checked:bg-lime-500 peer-checked:text-black peer-checked:border-lime-500 peer-checked:font-black peer-checked:shadow-[0_0_15px_rgba(163,230,53,0.3)]">
+                            {{ $d->isoFormat('D MMM, dd') }}
+                        </div>
+                    </label>
+                @endforeach
+            </div>
         </div>
+
+        <div>
+            <span class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2 block">Трассы:</span>
+            <div class="flex flex-wrap gap-3">
+                @foreach($tracks as $track)
+                    @php
+                        $cTrack = [
+                            'Easy' => ['border' => 'border-lime-500/50', 'text' => 'text-lime-400', 'hover' => 'hover:bg-lime-500 hover:text-black', 'active_bg' => 'bg-lime-500/20'],
+                            'Medium' => ['border' => 'border-yellow-500/50', 'text' => 'text-yellow-400', 'hover' => 'hover:bg-yellow-500 hover:text-black', 'active_bg' => 'bg-yellow-500/20'],
+                            'Hard' => ['border' => 'border-red-500/50', 'text' => 'text-red-400', 'hover' => 'hover:bg-red-500 hover:text-black', 'active_bg' => 'bg-red-500/20'],
+                        ][$track->difficulty->name] ?? ['border' => 'border-gray-500/50', 'text' => 'text-gray-400', 'hover' => 'hover:bg-gray-500', 'active_bg' => 'bg-gray-500/20'];
+                        
+                        $isTrackChecked = in_array($track->id, request('track_id', []));
+                    @endphp
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="track_id[]" value="{{ $track->id }}" class="hidden peer" {{ $isTrackChecked ? 'checked' : '' }} onchange="this.form.submit()">
+                        <div class="border {{ $isTrackChecked ? $cTrack['border'] . ' ' . $cTrack['text'] . ' ' . $cTrack['active_bg'] : $cTrack['border'] . ' ' . $cTrack['text'] . ' ' . $cTrack['hover'] }} px-4 py-1.5 font-black uppercase text-xs tracking-widest transition">
+                            {{ $track->name }}
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+
+        <div>
+            <span class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2 block">Время:</span>
+            <div class="flex flex-wrap gap-2">
+                @foreach($timeOptions as $time)
+                    @php 
+                        $timeVal = \Carbon\Carbon::parse($time->start_time)->format('H:i');
+                        $isChecked = in_array($timeVal, request('times', [])); 
+                    @endphp
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="times[]" value="{{ $timeVal }}" class="hidden peer" {{ $isChecked ? 'checked' : '' }} onchange="this.form.submit()">
+                        <div class="border border-gray-700 text-gray-500 px-3 py-1.5 font-bold uppercase text-xs tracking-widest transition peer-checked:bg-lime-500/20 peer-checked:border-lime-500/50 peer-checked:text-lime-400 hover:border-white hover:text-white">
+                            {{ \Carbon\Carbon::parse($time->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($time->end_time)->format('H:i') }}
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+
     </form>
 
     @if($slotsData->isEmpty())
         <div class="glass-card rounded-xl p-6 text-center text-gray-500 font-bold uppercase tracking-widest">
-            Свободных слотов не найдено.
+            Свободных слотов по выбранным фильтрам не найдено.
         </div>
     @else
         @foreach($slotsData as $date => $daySlots)
@@ -102,7 +117,6 @@
                                             'Hard' => ['stripe' => 'bg-red-500', 'badge' => 'bg-red-500/20 border-red-500/50 text-red-400', 'btn' => 'bg-red-500 hover:bg-red-400 text-white hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]'],
                                         ][$track->difficulty->name] ?? ['stripe' => 'bg-gray-500', 'badge' => 'bg-gray-500/20 border-gray-500/50 text-gray-400', 'btn' => 'bg-gray-500 hover:bg-gray-400 text-white'];
 
-                                        // Разделитель: на мобилке просто отступ сверху, на десктопе - красная линия слева
                                         $separatorClass = '';
                                         if ($isBusy && !$busyStarted && !$loop->first) {
                                             $separatorClass = 'mt-4 md:mt-0 md:ml-6 md:border-l-2 md:border-red-500/20 md:pl-4';

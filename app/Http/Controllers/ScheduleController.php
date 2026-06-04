@@ -19,8 +19,10 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'track_id' => ['nullable', 'exists:tracks,id'],
-            'date' => ['nullable', 'date', 'after_or_equal:today'],
+            'track_id' => ['nullable', 'array'],
+            'track_id.*' => ['exists:tracks,id'],
+            'date' => ['nullable', 'array'],
+            'date.*' => ['date', 'after_or_equal:today'],
             'times' => ['nullable', 'array'],
             'times.*' => ['string'],
         ]);
@@ -44,11 +46,11 @@ class ScheduleController extends Controller
             ->orderBy('start_time');
 
         if ($request->filled('track_id')) {
-            $query->where('track_id', $request->track_id);
+            $query->whereIn('track_id', $request->track_id);
         }
 
         if ($request->filled('date')) {
-            $query->where('date', $request->date);
+            $query->whereIn('date', $request->date);
         }
 
         $timeOptions = TimeSlot::where('is_blocked', false)
@@ -61,8 +63,8 @@ class ScheduleController extends Controller
                         ->where('start_time', '>', now()->format('H:i:s'));
                 });
             })
-            ->when($request->filled('track_id'), fn($q) => $q->where('track_id', $request->track_id))
-            ->when($request->filled('date'), fn($q) => $q->where('date', $request->date))
+            ->when($request->filled('track_id'), fn($q) => $q->whereIn('track_id', $request->track_id))
+            ->when($request->filled('date'), fn($q) => $q->whereIn('date', $request->date))
             ->select('start_time', 'end_time')
             ->distinct()
             ->orderBy('start_time')
