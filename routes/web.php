@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\BookingStatus;
-
 use App\Http\Controllers\AdminTrackController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -15,11 +13,8 @@ use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\UserController;
 
-use App\Models\TimeSlot;
-use App\Models\Track;
-use App\Services\KartAvailabilityService;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Http\Controllers\AdminSlotApiController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [ScheduleController::class, 'welcome'])->name('welcome');
@@ -83,38 +78,9 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
         Route::get('users', [UserController::class, 'index'])->name('users.index');
 
         Route::prefix('api')->name('api.')->group(function () {
-            Route::get('tracks-by-date', function (Request $request) {
-                $request->validate(['date' => 'required|date']);
-                $trackIds = TimeSlot::where('date', $request->date)
-                    ->where('is_blocked', false)
-                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]))
-                    ->pluck('track_id')
-                    ->unique();
-                return Track::whereIn('id', $trackIds)->get(['id', 'name']);
-            })->name('tracks-by-date');
-
-            Route::get('slots-by-track', function (Request $request) {
-                $request->validate(['date' => 'required|date', 'track_id' => 'required|exists:tracks,id']);
-                $slots = TimeSlot::where('date', $request->date)
-                    ->where('track_id', $request->track_id)
-                    ->where('is_blocked', false)
-                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]))
-                    ->orderBy('start_time')
-                    ->get();
-                return $slots->map(fn ($slot) => [
-                    'id' => $slot->id,
-                    'time_range' => Carbon::parse($slot->start_time)->format('H:i') . ' – ' . Carbon::parse($slot->end_time)->format('H:i')
-                ]);
-            })->name('slots-by-track');
-
-            Route::get('slot-details/{slot}', function (TimeSlot $slot) {
-                if (!$slot || $slot->is_blocked) {
-                    return response()->json(['basePrice' => 0, 'limits' => []]);
-                }
-                $availabilityService = new KartAvailabilityService();
-                $kartLimits = $availabilityService->getAvailableKartsCountForSlot($slot);
-                return response()->json(['basePrice' => (float) $slot->track->price_per_slot, 'limits' => $kartLimits]);
-            })->name('slot-details');
+            Route::get('tracks-by-date', [AdminSlotApiController::class, 'tracksByDate'])->name('tracks-by-date');
+            Route::get('slots-by-track', [AdminSlotApiController::class, 'slotsByTrack'])->name('slots-by-track');
+            Route::get('slot-details/{slot}', [AdminSlotApiController::class, 'slotDetails'])->name('slot-details');
         });
     });
 });

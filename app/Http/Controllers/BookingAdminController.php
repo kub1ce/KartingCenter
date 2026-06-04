@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Validator;
 class BookingAdminController extends Controller
 {
     public function __construct(
-        private readonly BookingPriceCalculator $priceCalculator
+        private readonly BookingPriceCalculator $priceCalculator,
+        private readonly KartAvailabilityService $availabilityService
     ) {}
 
     public function index(Request $request): View
@@ -103,8 +104,7 @@ class BookingAdminController extends Controller
                 ]);
             }
 
-            $availabilityService = new KartAvailabilityService();
-            $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
+            $availableKarts = $this->availabilityService->getAvailableKartsCountForSlot($slot);
 
             foreach ($kartsData as $kart) {
                 $typeId = $kart['kart_type_id'];

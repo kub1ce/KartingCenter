@@ -17,7 +17,8 @@ use Illuminate\View\View;
 class BookingController extends Controller
 {
     public function __construct(
-        private readonly BookingPriceCalculator $priceCalculator
+        private readonly BookingPriceCalculator $priceCalculator,
+        private readonly KartAvailabilityService $availabilityService
     ) {}
 
     public function index(Request $request): View
@@ -86,8 +87,7 @@ class BookingController extends Controller
 
         $kartTypes = KartType::all();
 
-        $availabilityService = new KartAvailabilityService();
-        $kartLimits = $availabilityService->getAvailableKartsCountForSlot($slot);
+        $kartLimits = $this->availabilityService->getAvailableKartsCountForSlot($slot);
 
         return view('bookings.create', compact('slot', 'kartTypes', 'kartLimits'));
     }
@@ -117,8 +117,7 @@ class BookingController extends Controller
                 ]);
             }
 
-            $availabilityService = new KartAvailabilityService();
-            $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
+            $availableKarts = $this->availabilityService->getAvailableKartsCountForSlot($slot);
 
             foreach ($kartsData as $kart) {
                 $typeId = $kart['kart_type_id'];

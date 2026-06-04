@@ -7,10 +7,15 @@ use App\Models\TimeSlot;
 use App\Models\Track;
 use App\Models\Booking;
 use App\Models\KartType;
+use App\Services\KartAvailabilityService;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
 {
+    public function __construct(
+        private readonly KartAvailabilityService $availabilityService
+    ) {}
+
     public function index(Request $request)
     {
         $request->validate([
@@ -67,12 +72,10 @@ class ScheduleController extends Controller
             $query->whereIn('start_time', $request->times);
         }
 
-        $availabilityService = new \App\Services\KartAvailabilityService();
-
-        $slotsData = $query->get()->map(function ($slot) use ($availabilityService) {
+        $slotsData = $query->get()->map(function ($slot) {
             $isBusy = $slot->bookings->isNotEmpty();
             
-            $limits = $availabilityService->getAvailableKartsCountForSlot($slot);
+            $limits = $this->availabilityService->getAvailableKartsCountForSlot($slot);
             
             $availableKartsList = [];
             foreach ($limits as $limitData) {
