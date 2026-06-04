@@ -37,6 +37,53 @@
     </div>
     @endif
 
+    <!-- MAP & LOCATION -->
+    <div class="mb-20">
+        <h2 class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4">Как нас найти</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            
+            <div id="mapWrapper" class="lg:col-span-3 relative rounded-xl overflow-hidden border border-white/10 h-80 lg:h-auto" style="box-shadow: 0 0 30px rgba(163, 230, 53, 0.1);">
+                <iframe 
+                    src="https://yandex.ru/map-widget/v1/?um=constructor%3A52cf18c912d2c721f7afcb59696b5f4267fbe90566e266d11bb7af0987cae253&amp;source=constructor" 
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    style="filter: invert(90%) hue-rotate(180deg) contrast(1.2) brightness(0.8);"
+                    allowfullscreen>
+                </iframe>
+                
+                <div id="mapOverlay" class="absolute inset-0 bg-transparent z-10 cursor-pointer"></div>
+            </div>
+
+            <div class="lg:col-span-2 glass-card rounded-xl p-8 flex flex-col justify-center" style="--glow-color: rgba(163, 230, 53, 0.15);">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Адрес</h3>
+                        <p class="text-white font-bold text-lg">г. Екатеринбург, ул. Мира, 32</p>
+                    </div>
+                    
+                    <div class="h-px w-full bg-gradient-to-r from-lime-500/50 to-transparent"></div>
+
+                    <div>
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Бронирование</h3>
+                        <p class="text-lime-400 font-bold text-lg hover:text-lime-300 transition cursor-pointer">+7 (343) 123-45-67</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Почта</h3>
+                        <p class="text-white font-bold text-lg hover:text-lime-400 transition cursor-pointer">admin@karting.local</p>
+                    </div>
+
+                    <div class="pt-4">
+                        <a href="https://yandex.ru/maps/-/CPXjr-Pz" target="_blank" class="inline-block bg-gray-800 hover:bg-lime-500 hover:text-black text-lime-400 px-5 py-2.5 font-black uppercase text-xs tracking-wider transition">
+                            Построить маршрут
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TRACKS GRID -->
     <a class="text-2xl font-black text-white uppercase mb-8 tracking-wider border-l-4 border-lime-500 pl-4" href="{{ route('tracks.index') }}">Наши трассы</a>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-20">
@@ -89,4 +136,28 @@
     </div>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mapWrapper = document.getElementById('mapWrapper');
+    const mapOverlay = document.getElementById('mapOverlay');
+
+    if (mapWrapper && mapOverlay) {
+        mapOverlay.addEventListener('wheel', function (e) {
+            e.preventDefault();
+            window.scrollBy({
+                top: e.deltaY,
+                behavior: 'auto'
+            });
+        }, { passive: false });
+
+        mapOverlay.addEventListener('mousedown', function () {
+            mapOverlay.style.pointerEvents = 'none';
+        });
+
+        mapWrapper.addEventListener('mouseleave', function () {
+            mapOverlay.style.pointerEvents = 'auto';
+        });
+    }
+});
+</script>
 </x-app-layout>
