@@ -18,8 +18,6 @@ class News extends Model
         'published_at',
     ];
 
-    protected $guarded = []; 
-
     protected function casts(): array
     {
         return [

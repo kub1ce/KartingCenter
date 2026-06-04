@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,14 +44,16 @@ class TimeSlot extends Model
             return false;
         }
 
+        $activeStatuses = [BookingStatus::Pending, BookingStatus::Confirmed];
+
         if ($this->relationLoaded('bookings')) {
             return $this->bookings
-                ->whereIn('status', ['Pending', 'Confirmed'])
+                ->whereIn('status', $activeStatuses)
                 ->isEmpty();
         }
 
         return !$this->bookings()
-            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->whereIn('status', $activeStatuses)
             ->exists();
     }
 }

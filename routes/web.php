@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\BookingStatus;
+
 use App\Http\Controllers\AdminTrackController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -85,7 +87,7 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
                 $request->validate(['date' => 'required|date']);
                 $trackIds = TimeSlot::where('date', $request->date)
                     ->where('is_blocked', false)
-                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', ['Pending', 'Confirmed']))
+                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]))
                     ->pluck('track_id')
                     ->unique();
                 return Track::whereIn('id', $trackIds)->get(['id', 'name']);
@@ -96,7 +98,7 @@ Route::middleware(['auth', 'role:Administrator,ContentManager'])->prefix('admin'
                 $slots = TimeSlot::where('date', $request->date)
                     ->where('track_id', $request->track_id)
                     ->where('is_blocked', false)
-                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', ['Pending', 'Confirmed']))
+                    ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]))
                     ->orderBy('start_time')
                     ->get();
                 return $slots->map(fn ($slot) => [

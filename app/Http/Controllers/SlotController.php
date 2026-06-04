@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookingStatus;
 use App\Models\TimeSlot;
 use App\Models\Track;
 use Illuminate\Http\Request;
@@ -26,7 +27,9 @@ class SlotController extends Controller
         
         $showPast = $request->filled('show_past') || $request->status === 'past';
 
-        $query = TimeSlot::with(['track', 'bookings' => fn($q) => $q->whereIn('status', ['Pending', 'Confirmed'])]);
+        $activeStatuses = [BookingStatus::Pending, BookingStatus::Confirmed];
+
+        $query = TimeSlot::with(['track', 'bookings' => fn($q) => $q->whereIn('status', $activeStatuses)]);
 
         if (!empty($request->track_id)) {
             $query->whereIn('track_id', $request->track_id);
@@ -34,11 +37,11 @@ class SlotController extends Controller
 
         if ($request->status === 'free') {
             $query->where('is_blocked', false)
-                  ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', ['Pending', 'Confirmed']));
+                  ->whereDoesntHave('bookings', fn($q) => $q->whereIn('status', $activeStatuses));
         } elseif ($request->status === 'blocked') {
             $query->where('is_blocked', true);
         } elseif ($request->status === 'booked') {
-            $query->whereHas('bookings', fn($q) => $q->whereIn('status', ['Pending', 'Confirmed']));
+            $query->whereHas('bookings', fn($q) => $q->whereIn('status', $activeStatuses));
         } elseif ($request->status === 'past') {
             $query->where('date', '<', today());
         }

@@ -108,7 +108,7 @@ class BookingAdminController extends Controller
                 'user_id' => $validated['user_id'],
                 'time_slot_id' => $slot->id,
                 'participants_count' => $validated['participants_count'],
-                'status' => BookingStatus::Confirmed->value,
+                'status' => BookingStatus::Confirmed,
                 'total_price' => $totalPrice,
                 'created_by' => auth()->id(),
             ]);
@@ -132,13 +132,13 @@ class BookingAdminController extends Controller
 
     public function confirm(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => BookingStatus::Confirmed->value]);
+        $booking->update(['status' => BookingStatus::Confirmed]);
         return back()->with('success', 'Бронь подтверждена.');
     }
 
     public function cancel(Booking $booking): RedirectResponse
     {
-        $booking->update(['status' => BookingStatus::Cancelled->value]);
+        $booking->update(['status' => BookingStatus::Cancelled]);
         return back()->with('success', 'Бронь отменена.');
     }
 }

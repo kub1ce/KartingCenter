@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\KartType;
 use App\Models\TimeSlot;
 use App\Services\BookingPriceCalculator;
+use App\Services\KartAvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,7 @@ class BookingController extends Controller
 {
     public function __construct(
         private readonly BookingPriceCalculator $priceCalculator
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -27,7 +26,7 @@ class BookingController extends Controller
 
         $upcoming = Booking::with(['timeSlot.track', 'bookingKarts.kartType'])
             ->where('user_id', $user->id)
-            ->whereIn('status', [BookingStatus::Pending->value, BookingStatus::Confirmed->value])
+            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
             ->whereHas('timeSlot', fn($q) => $q->where('date', '>=', today()))
             ->orderBy(
                 TimeSlot::select('date')
@@ -39,7 +38,7 @@ class BookingController extends Controller
         $history = Booking::with(['timeSlot.track', 'bookingKarts.kartType'])
             ->where('user_id', $user->id)
             ->where(function ($q) {
-                $q->whereIn('status', [BookingStatus::Cancelled->value, BookingStatus::Completed->value])
+                $q->whereIn('status', [BookingStatus::Cancelled, BookingStatus::Completed])
                     ->orWhereHas('timeSlot', fn($q2) => $q2->where('date', '<', today()));
             })
             ->orderByDesc(
@@ -80,14 +79,14 @@ class BookingController extends Controller
                 ->with('error', 'Выбранный слот уже прошёл.');
         }
 
-        if ($slot->bookings()->whereIn('status', ['Pending', 'Confirmed'])->exists()) {
+        if ($slot->bookings()->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])->exists()) {
             return redirect()->route('schedule.index')
                 ->with('error', 'К сожалению, этот слот уже занят.');
         }
 
         $kartTypes = KartType::all();
 
-        $availabilityService = new \App\Services\KartAvailabilityService();
+        $availabilityService = new KartAvailabilityService();
         $kartLimits = $availabilityService->getAvailableKartsCountForSlot($slot);
 
         return view('bookings.create', compact('slot', 'kartTypes', 'kartLimits'));
@@ -103,7 +102,7 @@ class BookingController extends Controller
             if ($slot->is_blocked) {
                 return null;
             }
-            if ($slot->bookings()->whereIn('status', ['Pending', 'Confirmed'])->exists()) {
+            if ($slot->bookings()->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])->exists()) {
                 return null;
             }
 
@@ -112,13 +111,14 @@ class BookingController extends Controller
                 ->values()
                 ->toArray();
             
-            $availabilityService = new \App\Services\KartAvailabilityService();
+            $availabilityService = new KartAvailabilityService();
             $availableKarts = $availabilityService->getAvailableKartsCountForSlot($slot);
 
             foreach ($kartsData as $kart) {
                 $typeId = $kart['kart_type_id'];
                 $requestedQty = $kart['quantity'];
-                $freeQty = $availableKarts[$typeId] ?? 0;
+                
+                $freeQty = $availableKarts[$typeId]['max'] ?? 0;
 
                 if ($requestedQty > $freeQty) {
                     $validator = \Illuminate\Support\Facades\Validator::make([], []);

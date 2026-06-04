@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingStatus;
 use App\Enums\KartStatus;
 use App\Models\KartType;
 use App\Models\TimeSlot;
@@ -19,7 +20,7 @@ class KartAvailabilityService
             ->pluck('id');
 
         $activeBookings = \App\Models\Booking::whereIn('time_slot_id', $overlappingSlotIds)
-            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
             ->with('bookingKarts')
             ->get();
 
@@ -32,9 +33,10 @@ class KartAvailabilityService
 
             $bookedSameTime = 0;
             foreach ($activeBookings as $booking) {
-                $kartRecord = $booking->bookingKarts->firstWhere('kart_type_id', $type->id);
-                if ($kartRecord) {
-                    $bookedSameTime += $kartRecord->quantity;
+                foreach ($booking->bookingKarts as $bk) {
+                    if ($bk->kart_type_id === $type->id) {
+                        $bookedSameTime += $bk->quantity;
+                    }
                 }
             }
 
@@ -43,6 +45,7 @@ class KartAvailabilityService
             $showWarning = $bookedSameTime > 0;
 
             $limits[$type->id] = [
+                'name' => $type->name,
                 'max' => $maxAvailable,
                 'showWarning' => $showWarning
             ];
@@ -70,7 +73,7 @@ class KartAvailabilityService
         $futureBookings = \App\Models\Booking::whereHas('timeSlot', function ($q) {
             $q->where('date', '>=', now()->toDateString());
         })
-        ->whereIn('status', ['Pending', 'Confirmed'])
+        ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
         ->whereHas('bookingKarts', fn($q) => $q->where('kart_type_id', $kart->kart_type_id))
         ->with(['timeSlot', 'bookingKarts' => fn($q) => $q->where('kart_type_id', $kart->kart_type_id)])
         ->get();
@@ -78,7 +81,7 @@ class KartAvailabilityService
         $conflictSlots = [];
         foreach ($futureBookings->groupBy('time_slot_id') as $slotId => $bookings) {
             $demandInSlot = $bookings->sum(function ($booking) {
-                return $booking->bookingKarts->first()->quantity ?? 0;
+                return $booking->bookingKarts->sum('quantity');
             });
 
             if ($demandInSlot > $availableAfterAction) {

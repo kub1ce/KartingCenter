@@ -12,8 +12,11 @@ class BookingPriceCalculator
         $basePrice = (float)$slot->track->price_per_slot;
         $total = 0.0;
 
+        $kartTypeIds = array_column($karts, 'kart_type_id');
+        $kartTypes = KartType::whereIn('id', $kartTypeIds)->get()->keyBy('id');
+
         foreach ($karts as $kart) {
-            $type = KartType::find($kart['kart_type_id']);
+            $type = $kartTypes->get($kart['kart_type_id']);
             if (!$type) {
                 continue;
             }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookingStatus;
 use App\Models\TimeSlot;
 use App\Models\Track;
 use App\Models\Booking;
@@ -22,7 +23,7 @@ class ScheduleController extends Controller
         $query = TimeSlot::query()
             ->with([
                 'track',
-                'bookings' => fn($q) => $q->whereIn('status', ['Pending', 'Confirmed']),
+                'bookings' => fn($q) => $q->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]),
             ])
             ->where('is_blocked', false)
             ->where('date', '>=', today())
@@ -45,7 +46,6 @@ class ScheduleController extends Controller
             $query->where('date', $request->date);
         }
 
-        // 1. Получаем доступные времена для фильтров (ОТДЕЛЬНЫЙ чистый запрос без лишних сортировок)
         $timeOptions = TimeSlot::where('is_blocked', false)
             ->where('date', '>=', today())
             ->where('date', '<=', today()->addDays(14))
@@ -63,48 +63,22 @@ class ScheduleController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        // Применяем фильтр по времени (Используем whereIn для строк времени)
         if ($request->filled('times')) {
             $query->whereIn('start_time', $request->times);
         }
 
-        // 2. Получаем ВСЕ активные брони
-        $activeBookings = Booking::whereIn('status', ['Pending', 'Confirmed'])
-            ->whereHas('timeSlot', fn($q) => $q->whereBetween('date', [today(), today()->addDays(14)]))
-            ->with(['timeSlot', 'bookingKarts'])
-            ->get();
+        $availabilityService = new \App\Services\KartAvailabilityService();
 
-        // 3. Получаем типы картов
-        $kartTypes = KartType::withCount([
-            'karts',
-            'karts as maintenance_count' => fn ($q) => $q->where('status', 'Maintenance')
-        ])->get()->keyBy('id');
-
-        // 4. Обрабатываем слоты
-        $slotsData = $query->get()->map(function ($slot) use ($activeBookings, $kartTypes) {
+        $slotsData = $query->get()->map(function ($slot) use ($availabilityService) {
             $isBusy = $slot->bookings->isNotEmpty();
             
-            $overlappingBookings = $activeBookings->filter(function ($booking) use ($slot) {
-                return $booking->timeSlot->date->eq($slot->date) &&
-                    $booking->timeSlot->start_time < $slot->end_time &&
-                    $booking->timeSlot->end_time > $slot->start_time;
-            });
-
-            $usedKarts = [];
-            foreach ($overlappingBookings as $booking) {
-                foreach ($booking->bookingKarts as $bk) {
-                    $typeId = $bk->kart_type_id;
-                    $usedKarts[$typeId] = ($usedKarts[$typeId] ?? 0) + $bk->quantity;
-                }
-            }
-
+            $limits = $availabilityService->getAvailableKartsCountForSlot($slot);
+            
             $availableKartsList = [];
-            foreach ($kartTypes as $typeId => $type) {
-                $totalAvailable = $type->karts_count - $type->maintenance_count;
-                $free = max(0, $totalAvailable - ($usedKarts[$typeId] ?? 0));
+            foreach ($limits as $limitData) {
                 $availableKartsList[] = [
-                    'name' => (string) $type->name,
-                    'count' => (int) $free
+                    'name' => $limitData['name'],
+                    'count' => $limitData['max']
                 ];
             }
 
